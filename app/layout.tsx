@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
-  title: "Vault — Curated Commerce",
-  description: "Objects worth owning. Curated products for the discerning individual.",
+  title: "Nexor — Super App",
+  description: "Everything in one place. Your world, delivered.",
 };
 
 export default function RootLayout({
@@ -15,10 +14,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="scroll-smooth">
-      <body className="noise-overlay antialiased">
-        <main>{children}</main>
-        <Footer />
+      <body className="antialiased bg-[#f5f0e6] text-gray-900">
         <Navbar />
+        <main>{children}</main>
       </body>
     </html>
   );

@@ -1,275 +1,139 @@
 import Link from "next/link";
-// import {services} from "@/lib/data";
+import Image from "next/image";
 
-const services = [
-  {
-    id: "grocery",
-    label: "Grocery",
-    href: "/grocery",
-    icon: (
-      <svg viewBox="0 0 64 64" className="w-full h-full" fill="none">
-        <circle cx="32" cy="28" r="18" fill="rgba(251,191,36,0.08)" stroke="rgba(251,191,36,0.2)" strokeWidth="1.5"/>
-        <path d="M22 34 Q32 18 42 34" stroke="#fbbf24" strokeWidth="2" strokeLinecap="round" fill="none"/>
-        <ellipse cx="32" cy="35" rx="10" ry="5" fill="rgba(251,191,36,0.15)" stroke="#fbbf24" strokeWidth="1.5"/>
-        <circle cx="26" cy="26" r="3" fill="#4ade80" opacity="0.9"/>
-        <circle cx="32" cy="23" r="3.5" fill="#fb923c" opacity="0.9"/>
-        <circle cx="38" cy="26" r="3" fill="#a78bfa" opacity="0.9"/>
-        <path d="M20 38 Q32 42 44 38" stroke="#fbbf24" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
-      </svg>
-    ),
-  },
-  {
-    id: "food-delivery",
-    label: "Food Delivery",
-    href: "/food_delivery",
-    icon: (
-      <svg viewBox="0 0 64 64" className="w-full h-full" fill="none">
-        <circle cx="32" cy="28" r="18" fill="rgba(251,191,36,0.08)" stroke="rgba(251,191,36,0.2)" strokeWidth="1.5"/>
-        <rect x="18" y="26" width="20" height="10" rx="5" fill="rgba(251,191,36,0.15)" stroke="#fbbf24" strokeWidth="1.5"/>
-        <path d="M38 31 L46 31 L44 26 L38 26 Z" fill="rgba(251,191,36,0.15)" stroke="#fbbf24" strokeWidth="1.5"/>
-        <circle cx="24" cy="38" r="3" fill="none" stroke="#fbbf24" strokeWidth="1.5"/>
-        <circle cx="40" cy="38" r="3" fill="none" stroke="#fbbf24" strokeWidth="1.5"/>
-        <path d="M28 26 Q32 20 36 26" stroke="#fb923c" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
-        <circle cx="32" cy="22" r="2" fill="#fb923c"/>
-      </svg>
-    ),
-  },
-  {
-    id: "medicines",
-    label: "Medicines",
-    href: "/medicines",
-    icon: (
-      <svg viewBox="0 0 64 64" className="w-full h-full" fill="none">
-        <circle cx="32" cy="28" r="18" fill="rgba(251,191,36,0.08)" stroke="rgba(251,191,36,0.2)" strokeWidth="1.5"/>
-        <rect x="27" y="17" width="10" height="22" rx="5" fill="rgba(251,191,36,0.12)" stroke="#fbbf24" strokeWidth="1.5"/>
-        <rect x="27" y="17" width="10" height="11" rx="5" fill="rgba(251,191,36,0.25)" stroke="#fbbf24" strokeWidth="1.5"/>
-        <line x1="32" y1="28" x2="32" y2="39" stroke="#fbbf24" strokeWidth="1" strokeDasharray="2 2"/>
-        <path d="M22 32 L26 32 M38 32 L42 32" stroke="#4ade80" strokeWidth="2" strokeLinecap="round"/>
-        <path d="M32 26 L32 30 M30 28 L34 28" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
-      </svg>
-    ),
-  },
-  {
-    id: "rides",
-    label: "Rides",
-    href: "/rides",
-    icon: (
-      <svg viewBox="0 0 64 64" className="w-full h-full" fill="none">
-        <circle cx="32" cy="28" r="18" fill="rgba(251,191,36,0.08)" stroke="rgba(251,191,36,0.2)" strokeWidth="1.5"/>
-        <rect x="19" y="27" width="26" height="10" rx="3" fill="rgba(251,191,36,0.15)" stroke="#fbbf24" strokeWidth="1.5"/>
-        <path d="M22 27 L25 21 L39 21 L42 27" stroke="#fbbf24" strokeWidth="1.5" strokeLinejoin="round" fill="rgba(251,191,36,0.08)"/>
-        <circle cx="25" cy="38" r="3.5" fill="none" stroke="#fbbf24" strokeWidth="2"/>
-        <circle cx="25" cy="38" r="1.5" fill="#fbbf24"/>
-        <circle cx="39" cy="38" r="3.5" fill="none" stroke="#fbbf24" strokeWidth="2"/>
-        <circle cx="39" cy="38" r="1.5" fill="#fbbf24"/>
-        <rect x="27" y="22" width="5" height="5" rx="1" fill="rgba(147,197,253,0.4)" stroke="rgba(147,197,253,0.6)" strokeWidth="1"/>
-        <rect x="33" y="22" width="5" height="5" rx="1" fill="rgba(147,197,253,0.4)" stroke="rgba(147,197,253,0.6)" strokeWidth="1"/>
-      </svg>
-    ),
-  },
-  {
-    id: "stays",
-    label: "Stays",
-    href: "/stays",
-    icon: (
-      <svg viewBox="0 0 64 64" className="w-full h-full" fill="none">
-        <circle cx="32" cy="28" r="18" fill="rgba(251,191,36,0.08)" stroke="rgba(251,191,36,0.2)" strokeWidth="1.5"/>
-        <path d="M20 38 L20 28 L32 19 L44 28 L44 38 Z" fill="rgba(251,191,36,0.1)" stroke="#fbbf24" strokeWidth="1.5" strokeLinejoin="round"/>
-        <path d="M20 28 L32 19 L44 28" stroke="#fbbf24" strokeWidth="1.5" strokeLinejoin="round" fill="rgba(251,191,36,0.15)"/>
-        <rect x="28" y="30" width="8" height="8" rx="1" fill="rgba(251,191,36,0.2)" stroke="#fbbf24" strokeWidth="1.2"/>
-        <rect x="22" y="29" width="5" height="4" rx="1" fill="rgba(147,197,253,0.3)" stroke="rgba(147,197,253,0.6)" strokeWidth="1"/>
-        <rect x="37" y="29" width="5" height="4" rx="1" fill="rgba(147,197,253,0.3)" stroke="rgba(147,197,253,0.6)" strokeWidth="1"/>
-        <circle cx="32" cy="17" r="2" fill="#fbbf24"/>
-      </svg>
-    ),
-  },
-  {
-    id: "travel",
-    label: "Travel",
-    href: "/travel",
-    icon: (
-      <svg viewBox="0 0 64 64" className="w-full h-full" fill="none">
-        <circle cx="32" cy="28" r="18" fill="rgba(251,191,36,0.08)" stroke="rgba(251,191,36,0.2)" strokeWidth="1.5"/>
-        <ellipse cx="32" cy="28" rx="11" ry="14" fill="none" stroke="#fbbf24" strokeWidth="1.5"/>
-        <ellipse cx="32" cy="28" rx="18" ry="4" fill="none" stroke="#fbbf24" strokeWidth="1.2"/>
-        <line x1="32" y1="14" x2="32" y2="42" stroke="#fbbf24" strokeWidth="1" strokeDasharray="2 2"/>
-        <path d="M19 22 Q32 26 45 22" stroke="#fbbf24" strokeWidth="1" fill="none"/>
-        <path d="M19 34 Q32 30 45 34" stroke="#fbbf24" strokeWidth="1" fill="none"/>
-        <circle cx="32" cy="28" r="2.5" fill="#fbbf24"/>
-      </svg>
-    ),
-  },
-  {
-    id: "shopping",
-    label: "Shopping",
-    href: "/shopping",
-    icon: (
-      <svg viewBox="0 0 64 64" className="w-full h-full" fill="none">
-        <circle cx="32" cy="28" r="18" fill="rgba(251,191,36,0.08)" stroke="rgba(251,191,36,0.2)" strokeWidth="1.5"/>
-        <path d="M21 22 L23 36 L41 36 L43 22 Z" fill="rgba(251,191,36,0.12)" stroke="#fbbf24" strokeWidth="1.5" strokeLinejoin="round"/>
-        <path d="M27 22 Q27 17 32 17 Q37 17 37 22" fill="none" stroke="#fbbf24" strokeWidth="1.5" strokeLinecap="round"/>
-        <line x1="23" y1="27" x2="41" y2="27" stroke="#fbbf24" strokeWidth="1" strokeDasharray="2 2"/>
-        <line x1="29" y1="22" x2="28" y2="36" stroke="#fbbf24" strokeWidth="1" opacity="0.4"/>
-        <line x1="35" y1="22" x2="36" y2="36" stroke="#fbbf24" strokeWidth="1" opacity="0.4"/>
-        <circle cx="26" cy="38" r="2" fill="#fbbf24"/>
-        <circle cx="38" cy="38" r="2" fill="#fbbf24"/>
-      </svg>
-    ),
-  },
-  {
-    id: "events",
-    label: "Events",
-    href: "/events",
-    icon: (
-      <svg viewBox="0 0 64 64" className="w-full h-full" fill="none">
-        <circle cx="32" cy="28" r="18" fill="rgba(251,191,36,0.08)" stroke="rgba(251,191,36,0.2)" strokeWidth="1.5"/>
-        <rect x="20" y="23" width="24" height="18" rx="3" fill="rgba(251,191,36,0.1)" stroke="#fbbf24" strokeWidth="1.5"/>
-        <line x1="20" y1="28" x2="44" y2="28" stroke="#fbbf24" strokeWidth="1.5"/>
-        <rect x="24" y="19" width="3" height="7" rx="1.5" fill="#fbbf24"/>
-        <rect x="37" y="19" width="3" height="7" rx="1.5" fill="#fbbf24"/>
-        <circle cx="27" cy="33" r="1.5" fill="#fbbf24" opacity="0.6"/>
-        <circle cx="32" cy="33" r="1.5" fill="#fbbf24"/>
-        <circle cx="37" cy="33" r="1.5" fill="#fbbf24" opacity="0.6"/>
-        <circle cx="27" cy="38" r="1.5" fill="#fbbf24" opacity="0.4"/>
-        <circle cx="32" cy="38" r="1.5" fill="#fbbf24" opacity="0.6"/>
-      </svg>
-    ),
-  },
-  {
-    id: "quick-commerce",
-    label: "Quick Commerce",
-    href: "/quick_commerce",
-    icon: (
-      <svg viewBox="0 0 64 64" className="w-full h-full" fill="none">
-        <circle cx="32" cy="28" r="18" fill="rgba(251,191,36,0.08)" stroke="rgba(251,191,36,0.2)" strokeWidth="1.5"/>
-        <path d="M19 26 L22 22 L42 22 L45 26 L44 36 L20 36 Z" fill="rgba(251,191,36,0.1)" stroke="#fbbf24" strokeWidth="1.5" strokeLinejoin="round"/>
-        <line x1="19" y1="26" x2="45" y2="26" stroke="#fbbf24" strokeWidth="1.2"/>
-        <circle cx="25" cy="38" r="3" fill="none" stroke="#fbbf24" strokeWidth="1.5"/>
-        <circle cx="39" cy="38" r="3" fill="none" stroke="#fbbf24" strokeWidth="1.5"/>
-        <path d="M30 29 L34 29 L32 33 L35 33 L29 39 L31 34 L28 34 Z" fill="#fbbf24" opacity="0.8"/>
-      </svg>
-    ),
-  },
-  {
-    id: "nexor-pay",
-    label: "Nexor Pay",
-    href: "/nexor_pay",
-    icon: (
-      <svg viewBox="0 0 64 64" className="w-full h-full" fill="none">
-        <circle cx="32" cy="28" r="18" fill="rgba(251,191,36,0.08)" stroke="rgba(251,191,36,0.2)" strokeWidth="1.5"/>
-        <rect x="18" y="22" width="28" height="18" rx="3" fill="rgba(251,191,36,0.1)" stroke="#fbbf24" strokeWidth="1.5"/>
-        <rect x="18" y="26" width="28" height="4" fill="rgba(251,191,36,0.25)"/>
-        <rect x="22" y="33" width="8" height="2" rx="1" fill="#fbbf24" opacity="0.6"/>
-        <rect x="22" y="36" width="5" height="2" rx="1" fill="#fbbf24" opacity="0.4"/>
-        <circle cx="40" cy="34" r="4" fill="rgba(251,191,36,0.2)" stroke="#fbbf24" strokeWidth="1.2"/>
-        <path d="M38 34 L39.5 35.5 L42 32.5" stroke="#fbbf24" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-      </svg>
-    ),
-  },
+const categories = [
+  { id: "grocery", label: "Grocery", emoji: "🍇", image: "/icons/grocery.png", href: "/grocery" },
+  { id: "food", label: "Food\nDelivery", emoji: "🛵", image: "/icons/fooddelivery.png", href: "/food" },
+  { id: "medicines", label: "Medicines", emoji: "💊", image: "/icons/medicines.png", href: "/medicines" },
+  { id: "rides", label: "Rides", emoji: "🚙", image: "/icons/ride.png", href: "/rides" },
+  { id: "stays", label: "Stays", emoji: "🏨", image: "/icons/stays.png", href: "/stays" },
+  { id: "travel", label: "Travel", emoji: "🧳", image: "/icons/travel.png", href: "/travel" },
+  { id: "shopping", label: "Shopping", emoji: "🛍️", image: "/icons/shopping.png", href: "/shopping" },
+  { id: "events", label: "Events", emoji: "🎸", image: "https://ajfonpzetlpmenxemofe.supabase.co/storage/v1/object/sign/banners/Events.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV85NjQ3ZWJkYy1kYmRiLTQyYTgtOGRkOS1mMjliZWM0ZTU5NzEiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJiYW5uZXJzL0V2ZW50cy5wbmciLCJpYXQiOjE3NzM4NTc5NzUsImV4cCI6MTgwNTM5Mzk3NX0.rPLvRZYTp25bWXWOZSk4GfWvv2KCkwi3mLD08gP9kNY", href: "/events" },
+  { id: "quick", label: "Quick\nCommerce", emoji: "🛒", href: "/quick" },
+  { id: "pay", label: "Nexor Pay", emoji: "💳", image: "/icons/nexor pay.png", href: "/pay" },
 ];
-
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen pb-32">
-      {/* Hero */}
-      <section className="relative min-h-[55vh] flex items-center justify-center overflow-hidden hero-gradient">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-amber-400/5 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-purple-500/5 rounded-full blur-3xl pointer-events-none" />
-        <div
-          className="absolute inset-0 opacity-[0.03]"
-          style={{
-            backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
-            backgroundSize: "80px 80px",
-          }}
-        />
-
-        <div className="relative z-10 text-center px-6 max-w-4xl mx-auto">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass border border-amber-400/20 text-amber-400 text-xs font-mono uppercase tracking-widest mb-6">
-            <span className="w-1.5 h-1.5 bg-amber-400 rounded-full animate-pulse" />
-            Everything in one place
-          </div>
-
-          <h1 className="font-display font-bold leading-[1.05] mb-6">
-            <span className="block text-5xl sm:text-6xl lg:text-7xl text-white mb-1">
-              Your World,
-            </span>
-            <span className="block text-5xl sm:text-6xl lg:text-7xl gradient-text italic">
-              Delivered.
-            </span>
-          </h1>
-
-          <p className="text-ash-400 text-lg max-w-lg mx-auto leading-relaxed">
-            Grocery, rides, food, travel and more — all from a single platform built for the way you live.
-          </p>
+    <div className="min-h-screen pb-28 md:pb-12 bg-[#f5f0e6] text-gray-900 relative max-w-lg md:max-w-7xl mx-auto border-x md:border-none border-gray-100 shadow-sm md:shadow-none">
+      {/* Header (Mobile Only) */}
+      <header className="top-header md:hidden px-4 pt-5 pb-3 flex items-center justify-between">
+        <div className="flex items-center cursor-pointer">
+          <img
+            src="https://ajfonpzetlpmenxemofe.supabase.co/storage/v1/object/sign/icons/official_logo-removebg-preview.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV85NjQ3ZWJkYy1kYmRiLTQyYTgtOGRkOS1mMjliZWM0ZTU5NzEiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJpY29ucy9vZmZpY2lhbF9sb2dvLXJlbW92ZWJnLXByZXZpZXcucG5nIiwiaWF0IjoxNzc0MDgwOTE1LCJleHAiOjE4MDU2MTY5MTV9.EQgxHl1DhC7vXRKQEM80y1wyKHZ8JrMQpg43ejkeP1U"
+            alt="Nexor Logo"
+            className="h-12 w-auto object-contain drop-shadow-sm scale-125 origin-left"
+          />
         </div>
-
-        {/* Scroll hint */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 animate-float">
-          <div className="w-px h-10 bg-gradient-to-b from-ash-600 to-transparent" />
+        <div className="flex items-center gap-4">
+          <button aria-label="Scan QR"><svg className="w-6 h-6 text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" /></svg></button>
+          <button aria-label="Dark Mode"><svg className="w-6 h-6 text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg></button>
+          <button aria-label="Cart"><svg className="w-6 h-6 text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg></button>
         </div>
-      </section>
+      </header>
 
-      {/* Services Grid */}
-      <section className="px-6 py-16 max-w-5xl mx-auto">
-        <div className="text-center mb-12">
-          <p className="text-amber-400 text-xs uppercase tracking-[0.3em] font-mono mb-3">
-            Our Services
-          </p>
-          <h2 className="font-display font-bold text-4xl sm:text-5xl text-white">
-            What can we help with?
-          </h2>
+      {/* Search (Mobile Only) */}
+      <div className="px-4 py-2 mb-2 md:hidden">
+        <div className="search-bar flex items-center gap-2 px-4 py-3">
+          <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input
+            type="text"
+            placeholder="Search"
+            className="bg-transparent border-none outline-none w-full text-base placeholder-gray-400 font-medium"
+          />
         </div>
+      </div>
 
-        <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
-          {services.map((service) => (
-            <Link
-              key={service.id}
-              href={service.href}
-              className="group flex flex-col items-center gap-3 p-4 sm:p-5 rounded-2xl border border-white/5 bg-obsidian-800/50 hover:bg-obsidian-800 hover:border-amber-400/20 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-amber-400/5"
-            >
-              {/* Icon container */}
-              <div className="relative w-14 h-14 sm:w-16 sm:h-16">
-                {/* Glow on hover */}
-                <div className="absolute inset-0 rounded-full bg-amber-400/0 group-hover:bg-amber-400/8 blur-xl transition-all duration-300" />
-                <div className="relative w-full h-full group-hover:scale-110 transition-transform duration-300">
-                  {service.icon}
-                </div>
+      {/* Categories Grid */}
+      <div className="px-2 md:px-6 md:py-8 py-4">
+        <div className="grid grid-cols-5 md:grid-cols-10 gap-y-6 md:gap-y-8 gap-x-1 md:gap-x-4">
+          {categories.map((cat, i) => (
+            <Link href={cat.href} key={cat.id} className={`service-icon-card md:hover:scale-105 animate-fade-up-delay-${(i % 5) + 1}`}>
+              <div className="w-16 h-16 md:w-20 md:h-20 text-5xl md:text-[56px] leading-none flex items-center justify-center drop-shadow-sm filter transition-transform">
+                {cat.image ? (
+                  <img src={cat.image} alt={cat.label} className="w-full h-full object-contain p-1" />
+                ) : (
+                  cat.emoji
+                )}
               </div>
-
-              {/* Label */}
-              <span className="text-ash-400 group-hover:text-amber-400 text-xs sm:text-sm font-medium text-center leading-tight transition-colors duration-200">
-                {service.label}
+              <span className="text-[12px] md:text-sm md:mt-1 font-medium text-center leading-snug px-0.5 text-gray-800 whitespace-pre-line text-balance">
+                {cat.label}
               </span>
             </Link>
           ))}
         </div>
-      </section>
+      </div>
 
-      {/* Promo strip */}
-      <section className="px-6 pb-8 max-w-5xl mx-auto">
-        <div className="relative overflow-hidden rounded-2xl border border-amber-400/10 p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5"
-          style={{
-            background: "radial-gradient(ellipse at left, rgba(251,191,36,0.07) 0%, transparent 60%), #10101e",
-          }}
-        >
-          <div className="absolute right-0 top-0 bottom-0 w-40 opacity-[0.04]"
-            style={{
-              background: "repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(251,191,36,1) 8px, rgba(251,191,36,1) 9px)",
-            }}
-          />
-          <div>
-            <p className="text-amber-400 text-xs font-mono uppercase tracking-widest mb-2">New User Offer</p>
-            <h3 className="font-display font-bold text-2xl sm:text-3xl text-white mb-1">
-              Get ₹200 off your first order
-            </h3>
-            <p className="text-ash-500 text-sm">Use code <span className="text-amber-400 font-mono font-bold">NEXOR200</span> at checkout</p>
+      {/* Today's Deals */}
+      <div className="mt-8 md:mt-12 px-4 md:px-6">
+        <h2 className="text-[22px] md:text-3xl font-bold text-gray-900 mb-6 animate-fade-up tracking-tight">Today's Deals !</h2>
+        <div className="flex md:grid md:grid-cols-2 gap-4 md:gap-8 overflow-x-auto md:overflow-visible pb-4 snap-x relative" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          {/* Main Deal Card */}
+          <div className="deal-card min-w-[320px] sm:min-w-[360px] md:min-w-0 md:min-h-[250px] flex-shrink-0 snap-center p-5 md:p-8 flex flex-col justify-end text-white shadow-xl shadow-emerald-900/10 animate-fade-up hover:shadow-2xl transition-all hover:-translate-y-1">
+            <div className="absolute top-4 md:top-8 left-5 md:left-8 w-3/4">
+              <h3 className="text-4xl md:text-5xl font-black italic uppercase tracking-tighter leading-none mb-1 opacity-90 drop-shadow-md">Munch<br />Mania</h3>
+              <p className="text-xs md:text-base font-semibold opacity-90 tracking-wide mt-2">Game on, hunger gone!</p>
+            </div>
+
+            {/* Discount Badge */}
+            <div className="absolute top-0 right-5 md:right-8 bg-white text-emerald-800 px-3 md:px-4 py-1.5 md:py-2.5 rounded-b-lg text-center shadow-lg border border-gray-100 flex flex-col items-center">
+              <span className="block text-[8px] md:text-[10px] font-black uppercase text-emerald-900 tracking-wider">Up to</span>
+              <span className="block text-[22px] md:text-[32px] font-black leading-none my-0 md:my-1 text-emerald-700">30%</span>
+              <span className="block text-[8px] md:text-[10px] font-black uppercase text-emerald-900 tracking-wider">Off</span>
+              <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-white rotate-45 border-b border-r border-gray-100"></div>
+            </div>
+
+            <div className="mt-32 md:mt-40">
+              <button className="bg-white text-black px-4 py-1.5 md:px-6 md:py-2 rounded-full text-xs md:text-sm font-bold shadow-md hover:scale-105 active:scale-95 transition-transform">Order Now</button>
+            </div>
           </div>
-          <button className="flex-shrink-0 px-6 py-3 bg-amber-400 hover:bg-amber-300 text-black font-semibold rounded-full text-sm transition-all hover:scale-105 active:scale-95">
-            Claim Offer →
-          </button>
+
+          {/* Second Deal Card */}
+          <div className="deal-card min-w-[320px] sm:min-w-[360px] md:min-w-0 md:min-h-[250px] flex-shrink-0 snap-center p-5 md:p-8 flex flex-col justify-end text-white shadow-xl animate-fade-up hover:shadow-2xl transition-all hover:-translate-y-1" style={{ background: "linear-gradient(135deg, #111827, #000000)" }}>
+            <div className="absolute left-5 md:left-8 top-5 md:top-8">
+              <h3 className="text-5xl md:text-6xl font-black italic tracking-tighter leading-none mb-1">FAST<br />&<br />FRESH</h3>
+            </div>
+            <div className="mt-40 md:mt-48">
+              <button className="bg-white text-black px-4 py-1.5 md:px-6 md:py-2 rounded-full text-xs md:text-sm font-bold shadow-md hover:scale-105 transition-transform">Shop Now</button>
+            </div>
+          </div>
         </div>
-      </section>
+
+        {/* Carousel indicators (Mobile Only) */}
+        <div className="flex md:hidden justify-center gap-1.5 mt-1 mb-8">
+          <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+          <div className="w-2 h-2 rounded-full bg-gray-200"></div>
+        </div>
+      </div>
+
+      {/* Tip Callout */}
+      <div className="px-6 md:px-8 mb-10 overflow-hidden relative">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1 h-32 bg-blue-200 opacity-50 z-0"></div>
+        <div className="absolute top-0 left-[calc(50%+8px)] -translate-x-1/2 w-1 h-32 bg-blue-200 opacity-50 z-0 md:left-[calc(50%+16px)]"></div>
+        <div className="text-center animate-fade-up relative z-10 bg-[#f5f0e6] shadow-[0_0_20px_10px_rgba(245,240,230,1)] py-2 md:py-6">
+          <p className="font-bold text-gray-900 text-[15px] md:text-xl leading-snug tracking-tight">
+            Use Quick Commerce section for fast deliveries of essentials
+          </p>
+        </div>
+      </div>
+
+      {/* What's brewing */}
+      <div className="px-4 md:px-6 pb-12 relative max-w-4xl mx-auto">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1 h-32 bg-blue-200 opacity-50 z-0 md:hidden"></div>
+        <div className="absolute top-0 left-[calc(50%+8px)] -translate-x-1/2 w-1 h-32 bg-blue-200 opacity-50 z-0 md:hidden"></div>
+        <h2 className="text-[22px] md:text-3xl font-bold text-gray-900 mb-6 md:mb-8 relative z-10 bg-[#f5f0e6] inline-block pr-4 shadow-[0_0_10px_10px_rgba(245,240,230,1)]">What's brewing in your head?</h2>
+        <div className="bg-[#fff9e6] rounded-2xl overflow-hidden relative shadow-sm border border-orange-100/50 hover:shadow-md transition-shadow">
+          <div className="p-8 md:p-12 pb-32 md:pb-32">
+            <h3 className="text-xl md:text-3xl font-bold text-orange-900">Breakfast Specials</h3>
+            <p className="text-orange-800 text-sm md:text-lg mt-1 md:mt-2">Start your day right</p>
+          </div>
+          <div className="absolute -bottom-10 -right-4 md:-right-10 md:-bottom-20 w-48 h-48 md:w-80 md:h-80 bg-orange-200 rounded-full mix-blend-multiply blur-xl opacity-50"></div>
+        </div>
+      </div>
+
     </div>
   );
 }

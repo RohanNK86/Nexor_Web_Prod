@@ -1,4 +1,4 @@
-// File: /Users/subhashkashyap/Documents/Project Nexor/Nexor-webApp/app/layout.tsx
+// File: C:\Users\chira\Desktop\nexor-webapp\Nexor-WebApp\app\layout.tsx
 import * as entry from '../../../app/layout.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 
