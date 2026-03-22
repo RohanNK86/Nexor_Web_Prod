@@ -17,6 +17,7 @@ const categories = [
 export default function HomePage() {
   return (
     <div className="min-h-screen pb-28 md:pb-12 bg-[#f5f0e6] text-gray-900 relative max-w-lg md:max-w-7xl mx-auto border-x md:border-none border-gray-100 shadow-sm md:shadow-none">
+      <p style={{ display: "none" }}>Impact-Site-Verification: 3e761a33-78fb-4425-ab17-dde1e1c22448</p>
       {/* Header (Mobile Only) */}
       <header className="top-header md:hidden px-4 pt-5 pb-3 flex items-center justify-between">
         <div className="flex items-center cursor-pointer">
