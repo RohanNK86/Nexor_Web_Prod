@@ -1,9 +1,5 @@
-import React from 'react'
+import ComingSoon from "@/components/ComingSoon";
 
-const FlashPage = () => {
-  return (
-    <div>FlashPage</div>
-  )
+export default function FlashPage() {
+  return <ComingSoon title="FLASH DEALS COMING SOON" />;
 }
-
-export default FlashPage

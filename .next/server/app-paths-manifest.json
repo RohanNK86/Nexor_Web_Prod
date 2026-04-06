@@ -1,9 +1,9 @@
 {
   "/page": "app/page.js",
-  "/grocery/page": "app/grocery/page.js",
-  "/nexor_pay/page": "app/nexor_pay/page.js",
-  "/stays/page": "app/stays/page.js",
-  "/_not-found/page": "app/_not-found/page.js",
   "/events/page": "app/events/page.js",
-  "/flash/page": "app/flash/page.js"
+  "/flash/page": "app/flash/page.js",
+  "/orders/page": "app/orders/page.js",
+  "/categories/page": "app/categories/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/profile/page": "app/profile/page.js"
 }
