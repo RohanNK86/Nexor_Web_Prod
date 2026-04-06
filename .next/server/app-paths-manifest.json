@@ -1,3 +1,10 @@
 {
-  "/page": "app/page.js"
+  "/page": "app/page.js",
+  "/rides/page": "app/rides/page.js",
+  "/nexor_pay/page": "app/nexor_pay/page.js",
+  "/stays/page": "app/stays/page.js",
+  "/grocery/page": "app/grocery/page.js",
+  "/food_delivery/page": "app/food_delivery/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/events/page": "app/events/page.js"
 }

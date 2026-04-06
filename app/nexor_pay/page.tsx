@@ -1,9 +1,5 @@
-import React from 'react'
+import ComingSoon from "@/components/ComingSoon";
 
-const NexorPay = () => {
-  return (
-    <div>NexorPay</div>
-  )
+export default function NexorPayPage() {
+  return <ComingSoon title="PAY COMING SOON" />;
 }
-
-export default NexorPay

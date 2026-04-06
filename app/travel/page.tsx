@@ -1,9 +1,5 @@
-import React from 'react'
+import ComingSoon from "@/components/ComingSoon";
 
-const TravelPage = () => {
-  return (
-    <div>TravelPage</div>
-  )
+export default function TravelPage() {
+  return <ComingSoon title="TRAVEL COMING SOON" />;
 }
-
-export default TravelPage

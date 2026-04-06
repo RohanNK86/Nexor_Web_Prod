@@ -1,9 +1,5 @@
-import React from 'react'
+import ComingSoon from "@/components/ComingSoon";
 
-const EventsPage = () => {
-  return (
-    <div>EventsPage</div>
-  )
+export default function EventsPage() {
+  return <ComingSoon title="EVENTS COMING SOON" />;
 }
-
-export default EventsPage

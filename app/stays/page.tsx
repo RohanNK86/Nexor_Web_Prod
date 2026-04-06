@@ -1,9 +1,5 @@
-import React from 'react'
+import ComingSoon from "@/components/ComingSoon";
 
-const StaysPage = () => {
-  return (
-    <div>StaysPage</div>
-  )
+export default function StaysPage() {
+  return <ComingSoon title="STAYS COMING SOON" />;
 }
-
-export default StaysPage

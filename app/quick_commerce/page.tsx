@@ -1,9 +1,5 @@
-import React from 'react'
+import ComingSoon from "@/components/ComingSoon";
 
-const QuickCommercePage = () => {
-  return (
-    <div>QuickCommercePage</div>
-  )
+export default function QuickCommercePage() {
+  return <ComingSoon title="QUICK COMING SOON" />;
 }
-
-export default QuickCommercePage
