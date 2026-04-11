@@ -150,7 +150,7 @@ export default function ProfilePage() {
   const fullName = user.user_metadata?.full_name || user.email?.split("@")[0] || "User";
 
   return (
-    <div className={`min-h-screen pt-16 pb-32 transition-colors duration-300 ${isDark ? "bg-[#06060e] text-[#f0eeff]" : "bg-[#f5f0e6] text-gray-900"}`}>
+    <div className={`min-h-screen pt-4 sm:pt-16 pb-32 transition-colors duration-300 ${isDark ? "bg-[#06060e] text-[#f0eeff]" : "bg-[#f5f0e6] text-gray-900"}`}>
       {/* Hero banner */}
       <div className="relative h-48 sm:h-64 overflow-hidden">
         <div
@@ -177,8 +177,8 @@ export default function ProfilePage() {
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         {/* Avatar row */}
-        <div className="relative -mt-16 sm:-mt-20 mb-8 sm:mb-12 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
-          <div className="flex items-end gap-6">
+        <div className="relative -mt-16 sm:-mt-20 mb-8 sm:mb-12 flex flex-col sm:flex-row items-center sm:items-end sm:justify-between gap-6">
+          <div className="flex flex-col sm:flex-row items-center sm:items-end gap-4 sm:gap-6">
             {/* Avatar */}
             <div className="relative flex-shrink-0 group">
               <div className={`w-28 h-28 sm:w-32 sm:h-32 rounded-3xl overflow-hidden border-4 shadow-2xl transition-transform group-hover:scale-105 ${
@@ -196,25 +196,25 @@ export default function ProfilePage() {
             </div>
 
             {/* Name / meta */}
-            <div className="mb-2">
-              <div className="flex items-center gap-3">
-                <h1 className={`text-3xl sm:text-4xl font-black tracking-tight ${txt("text-[#f0eeff]", "text-gray-900")}`}>
+            <div className="mb-2 text-center sm:text-left">
+              <div className="flex flex-col sm:flex-row items-center sm:items-baseline gap-2 sm:gap-3">
+                <h1 className={`text-2xl sm:text-4xl font-black tracking-tight ${txt("text-[#f0eeff]", "text-gray-900")}`}>
                   {fullName}
                 </h1>
-                <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${
+                <span className={`px-2.5 py-1 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-widest ${
                   isDark ? "bg-purple-500/10 text-purple-400 border border-purple-500/20" : "bg-black text-white"
                 }`}>
                   Nexus Member
                 </span>
               </div>
-              <p className={`text-sm mt-1 font-medium ${txt("text-[#f0eeff]/50", "text-gray-500")}`}>
+              <p className={`text-xs sm:text-sm mt-1 font-medium ${txt("text-[#f0eeff]/50", "text-gray-500")}`}>
                 {user.email}
               </p>
             </div>
           </div>
 
           {/* Action buttons */}
-          <div className="flex flex-row sm:items-center gap-3 self-start sm:self-auto w-full sm:w-auto">
+          <div className="flex flex-row items-center justify-center sm:justify-start gap-3 w-full sm:w-auto">
             <button
               onClick={() => setEditing(!editing)}
               className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-black transition-all ${
@@ -273,10 +273,10 @@ export default function ProfilePage() {
                   { label: "Nexus Points", value: (orders.length * 120).toLocaleString(), icon: "✨" },
                   { label: "Member Since", value: new Date(user.created_at).getFullYear(), icon: "🗓️" },
                 ].map((stat, i) => (
-                  <div key={i} className={`p-4 rounded-2xl border transition-all hover:scale-105 ${isDark ? "bg-white/5 border-white/10" : "bg-white border-gray-100 shadow-sm"}`}>
-                    <span className="text-xl mb-1 block">{stat.icon}</span>
-                    <p className="text-xl font-black">{stat.value}</p>
-                    <p className={`text-[10px] font-black uppercase tracking-widest ${txt("text-white/30", "text-gray-400")}`}>{stat.label}</p>
+                   <div key={i} className={`p-3 sm:p-4 rounded-2xl border transition-all hover:scale-105 ${isDark ? "bg-white/5 border-white/10" : "bg-white border-gray-100 shadow-sm"}`}>
+                    <span className="text-lg sm:text-xl mb-1 block">{stat.icon}</span>
+                    <p className="text-lg sm:text-xl font-black">{stat.value}</p>
+                    <p className={`text-[9px] sm:text-[10px] font-black uppercase tracking-widest ${txt("text-white/30", "text-gray-400")}`}>{stat.label}</p>
                   </div>
                 ))}
               </div>

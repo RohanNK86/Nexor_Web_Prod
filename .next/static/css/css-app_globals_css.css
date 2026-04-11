@@ -2127,6 +2127,9 @@ video {
   font-size: 0.75rem;
   line-height: 1rem;
 }
+.text-\[9px\]{
+  font-size: 9px;
+}
 .font-black{
   font-weight: 900;
 }
@@ -3529,12 +3532,24 @@ html[data-theme="light"] .theme-toggle-btn.active {
     align-items: center;
   }
 
+  .sm\:items-baseline{
+    align-items: baseline;
+  }
+
+  .sm\:justify-start{
+    justify-content: flex-start;
+  }
+
   .sm\:justify-between{
     justify-content: space-between;
   }
 
   .sm\:gap-6{
     gap: 1.5rem;
+  }
+
+  .sm\:gap-3{
+    gap: 0.75rem;
   }
 
   .sm\:self-auto{
@@ -3547,6 +3562,10 @@ html[data-theme="light"] .theme-toggle-btn.active {
 
   .sm\:p-6{
     padding: 1.5rem;
+  }
+
+  .sm\:p-4{
+    padding: 1rem;
   }
 
   .sm\:px-0{
@@ -3562,6 +3581,14 @@ html[data-theme="light"] .theme-toggle-btn.active {
   .sm\:py-2\.5{
     padding-top: 0.625rem;
     padding-bottom: 0.625rem;
+  }
+
+  .sm\:pt-16{
+    padding-top: 4rem;
+  }
+
+  .sm\:text-left{
+    text-align: left;
   }
 
   .sm\:text-right{
@@ -3596,6 +3623,10 @@ html[data-theme="light"] .theme-toggle-btn.active {
   .sm\:text-sm{
     font-size: 0.875rem;
     line-height: 1.25rem;
+  }
+
+  .sm\:text-\[10px\]{
+    font-size: 10px;
   }
 }
 
