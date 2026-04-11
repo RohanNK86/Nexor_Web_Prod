@@ -175,9 +175,9 @@ export default function ProfilePage() {
         )}
       </div>
 
-      <div className="max-w-6xl mx-auto px-6">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
         {/* Avatar row */}
-        <div className="relative -mt-16 mb-12 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
+        <div className="relative -mt-16 sm:-mt-20 mb-8 sm:mb-12 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
           <div className="flex items-end gap-6">
             {/* Avatar */}
             <div className="relative flex-shrink-0 group">
@@ -214,7 +214,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Action buttons */}
-          <div className="flex items-center gap-3 self-start sm:self-auto">
+          <div className="flex flex-row sm:items-center gap-3 self-start sm:self-auto w-full sm:w-auto">
             <button
               onClick={() => setEditing(!editing)}
               className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-black transition-all ${
@@ -228,6 +228,7 @@ export default function ProfilePage() {
               </svg>
               {editing ? "Save Profile" : "Edit Profile"}
             </button>
+            <div className="flex-1 sm:hidden"></div>
             <button 
               onClick={signOut}
               className={`p-3 rounded-2xl border transition-all ${
@@ -241,21 +242,23 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className={`flex gap-1 p-1.5 rounded-2xl mb-10 w-fit ${isDark ? "bg-white/5 border border-white/5" : "bg-gray-100 border border-gray-200/50"}`}>
-          {tabs.map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-6 py-2.5 rounded-xl text-sm font-black transition-all ${
-                activeTab === tab
-                  ? isDark ? "bg-purple-600 text-white shadow-lg shadow-purple-500/20" : "bg-white text-black shadow-sm"
-                  : isDark ? "text-[#f0eeff]/40 hover:text-[#f0eeff]/80" : "text-gray-500 hover:text-gray-900"
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
+        {/* Tabs - Scrollable on mobile */}
+        <div className="overflow-x-auto pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 no-scrollbar">
+          <div className={`flex gap-1 p-1.5 rounded-2xl mb-6 sm:mb-10 w-fit ${isDark ? "bg-white/5 border border-white/5" : "bg-gray-100 border border-gray-200/50"}`}>
+            {tabs.map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`px-5 sm:px-6 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all whitespace-nowrap ${
+                  activeTab === tab
+                    ? isDark ? "bg-purple-600 text-white shadow-lg shadow-purple-500/20" : "bg-white text-black shadow-sm"
+                    : isDark ? "text-[#f0eeff]/40 hover:text-[#f0eeff]/80" : "text-gray-500 hover:text-gray-900"
+                }`}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* ── Content Sections ── */}
@@ -398,8 +401,8 @@ export default function ProfilePage() {
                  <div className="py-20 text-center animate-pulse opacity-40">Loading your orders...</div>
                ) : orders.length > 0 ? (
                  orders.map(order => (
-                   <div key={order.id} className={`p-6 rounded-3xl border flex items-center gap-6 transition-all hover:scale-[1.01] ${isDark ? "bg-white/5 border-white/10 hover:border-purple-500/30" : "bg-white border-gray-100 shadow-sm"}`}>
-                      <div className="w-16 h-16 rounded-2xl overflow-hidden bg-gray-50 flex-shrink-0 flex items-center justify-center text-2xl">
+                   <div key={order.id} className={`p-4 sm:p-6 rounded-3xl border flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 transition-all hover:scale-[1.01] ${isDark ? "bg-white/5 border-white/10 hover:border-purple-500/30" : "bg-white border-gray-100 shadow-sm"}`}>
+                      <div className="w-16 h-16 rounded-2xl overflow-hidden bg-gray-50 flex-shrink-0 flex items-center justify-center text-2xl self-start sm:self-auto">
                          {order.image ? <img src={order.image} alt="Order" className="w-full h-full object-cover" /> : "📦"}
                       </div>
                       <div className="flex-1">
@@ -413,7 +416,7 @@ export default function ProfilePage() {
                          </div>
                          <p className={`text-xs font-bold ${txt("text-white/40", "text-gray-400")}`}>{new Date(order.created_at).toLocaleDateString()} • {order.items || 1} items</p>
                       </div>
-                      <div className="text-right">
+                       <div className="flex sm:flex-col justify-between items-end sm:text-right">
                          <p className="text-lg font-black tracking-tighter">₹{order.total}</p>
                          <button className={`text-[10px] font-black uppercase tracking-widest mt-1 hover:underline ${txt("text-purple-400", "text-orange-600")}`}>View Details</button>
                       </div>
