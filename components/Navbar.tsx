@@ -44,9 +44,55 @@ function ThemeToggle() {
   );
 }
 
+/* ── Mobile Top Navbar ──────────────────────── */
+function MobileTopNavbar({ user, userInitial, isDark, toggleTheme }: { user: any, userInitial: string, isDark: boolean, toggleTheme: () => void }) {
+  return (
+    <header className={`md:hidden px-4 pt-5 pb-3 flex items-center justify-between sticky top-0 z-[60] transition-colors duration-300 ${
+      isDark ? "bg-[#06060e]/80 backdrop-blur-xl border-b border-white/5" : "bg-[#f5f0e6]/90 backdrop-blur-md border-b border-gray-100"
+    }`}>
+      <div className="flex items-center">
+        <Link href="/" className="block">
+          <img
+            src="https://ajfonpzetlpmenxemofe.supabase.co/storage/v1/object/sign/icons/official_logo-removebg-preview.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV85NjQ3ZWJkYy1kYmRiLTQyYTgtOGRkOS1mMjliZWM0ZTU5NzEiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJpY29ucy9vZmZpY2lhbF9sb2dvLXJlbW92ZWJnLXByZXZpZXcucG5nIiwiaWF0IjoxNzc0MDgwOTE1LCJleHAiOjE4MDU2MTY5MTV9.EQgxHl1DhC7vXRKQEM80y1wyKHZ8JrMQpg43ejkeP1U"
+            alt="Nexor Logo"
+            className="h-10 w-auto object-contain drop-shadow-sm transition-transform hover:scale-105"
+          />
+        </Link>
+      </div>
+      
+      <div className="flex items-center gap-4">
+        {/* Theme Toggle (Mobile) */}
+        <button 
+          onClick={toggleTheme} 
+          className={`p-2 rounded-xl transition-all ${isDark ? "bg-white/5 text-purple-400" : "bg-white text-orange-500 shadow-sm border border-gray-100"}`}
+        >
+          {isDark ? <MoonIcon /> : <SunIcon />}
+        </button>
+
+        {/* Profile / Login Indicator (Mobile) */}
+        {user ? (
+          <Link href="/profile" className="flex items-center gap-2 group">
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-black shadow-lg transition-transform group-active:scale-95 ${
+              isDark ? "bg-gradient-to-br from-purple-500 to-cyan-500 text-white" : "bg-black text-white"
+            }`}>
+              {userInitial}
+            </div>
+          </Link>
+        ) : (
+          <Link href="/login" className={`p-2 rounded-xl transition-all ${isDark ? "bg-white/5 text-[#f0eeff]/60" : "bg-white text-gray-600 shadow-sm border border-gray-100"}`}>
+            <svg fill="currentColor" viewBox="0 0 24 24" className="w-6 h-6">
+              <path d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12ZM12 14C9.33 14 4 15.34 4 18V20H20V18C20 15.34 14.67 14 12 14Z" />
+            </svg>
+          </Link>
+        )}
+      </div>
+    </header>
+  );
+}
+
 export default function Navbar() {
   const pathname = usePathname();
-  const { theme } = useTheme();
+  const { theme, toggleTheme } = useTheme();
   const { user, signOut } = useAuth();
   const [locationName, setLocationName] = useState("Bengaluru");
   const [isLocating, setIsLocating] = useState(false);
@@ -124,6 +170,9 @@ export default function Navbar() {
 
   return (
     <>
+      {/* ── Mobile Top Navbar ── */}
+      <MobileTopNavbar user={user} userInitial={userInitial} isDark={isDark} toggleTheme={toggleTheme} />
+
       {/* ── Desktop Top Navbar ── */}
       <nav
         className={`hidden md:flex items-center justify-between px-8 py-4 sticky top-0 z-50 transition-all duration-300 ${isDark

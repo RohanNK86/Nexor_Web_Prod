@@ -28,40 +28,6 @@ export default function HomePage() {
       <div className={`min-h-screen pb-28 md:pb-12 relative max-w-lg md:max-w-7xl mx-auto border-x md:border-none shadow-sm md:shadow-none transition-colors duration-300 ${isDark ? "bg-transparent text-[#f0eeff] border-white/5" : "bg-[#f5f0e6] text-gray-900 border-gray-100"
         }`}>
 
-        {/* Header (Mobile Only) */}
-        <header className="top-header md:hidden px-4 pt-5 pb-3 flex items-center justify-between">
-          <div className="flex items-center cursor-pointer">
-            <img
-              src="https://ajfonpzetlpmenxemofe.supabase.co/storage/v1/object/sign/icons/official_logo-removebg-preview.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV85NjQ3ZWJkYy1kYmRiLTQyYTgtOGRkOS1mMjliZWM0ZTU5NzEiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJpY29ucy9vZmZpY2lhbF9sb2dvLXJlbW92ZWJnLXByZXZpZXcucG5nIiwiaWF0IjoxNzc0MDgwOTE1LCJleHAiOjE4MDU2MTY5MTV9.EQgxHl1DhC7vXRKQEM80y1wyKHZ8JrMQpg43ejkeP1U"
-              alt="Nexor Logo"
-              className="h-12 w-auto object-contain drop-shadow-sm scale-125 origin-left"
-            />
-          </div>
-          <div className="flex items-center gap-3">
-            <button aria-label="Scan QR">
-              <svg className={`w-6 h-6 ${txt("text-[#f0eeff]/70", "text-gray-700")}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
-              </svg>
-            </button>
-            {/* Theme toggle (mobile) — moon/sun */}
-            <button onClick={toggleTheme} aria-label="Toggle theme">
-              {isDark ? (
-                <svg className="w-6 h-6 text-[#f0eeff]/70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                </svg>
-              ) : (
-                <svg className="w-6 h-6 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 3v1m0 16v1m8.66-9h-1M4.34 12h-1m15.07-6.07-.71.71M6.34 17.66l-.71.71m12.02 0-.71-.71M6.34 6.34l-.71-.71M12 5a7 7 0 100 14A7 7 0 0012 5z" />
-                </svg>
-              )}
-            </button>
-            <button aria-label="Cart">
-              <svg className={`w-6 h-6 ${txt("text-[#f0eeff]/70", "text-gray-700")}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
-            </button>
-          </div>
-        </header>
 
         {/* Search (Mobile Only) */}
         <div className="px-4 py-2 mb-2 md:hidden">
