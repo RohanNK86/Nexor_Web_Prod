@@ -13,7 +13,14 @@ let client;
 
 try {
   if (supabaseUrl && supabaseAnonKey) {
-    client = createClient(supabaseUrl, supabaseAnonKey);
+    client = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+        storageKey: "nexor-auth-token",
+      },
+    });
   } else {
     console.warn("Supabase credentials missing in .env.local.");
   }
