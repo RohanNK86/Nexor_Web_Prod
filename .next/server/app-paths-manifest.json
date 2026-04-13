@@ -1,6 +1,4 @@
 {
-  "/events/page": "app/events/page.js",
   "/page": "app/page.js",
-  "/nexor_pay/page": "app/nexor_pay/page.js",
-  "/flash/page": "app/flash/page.js"
+  "/events/page": "app/events/page.js"
 }

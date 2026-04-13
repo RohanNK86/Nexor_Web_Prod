@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { createClient } from "@supabase/supabase-js";
-import nodemailer from "nodemailer";
+
 
 interface ConfirmPayload {
   eventId: string;
@@ -32,78 +32,7 @@ function getExpectedSignature(orderId: string, paymentId: string) {
     .digest("hex");
 }
 
-async function sendTicketEmail(input: {
-  to: string;
-  eventTitle: string;
-  eventDate: string;
-  eventTime: string;
-  eventVenue: string;
-  paymentId: string;
-  qrValue: string;
-}) {
-  const fromEmail = process.env.TICKET_FROM_EMAIL || "Nexor Super App <nexorsuperapp@gmail.com>";
-  const qrUrl = `https://quickchart.io/qr?size=300&text=${encodeURIComponent(input.qrValue)}`;
-  const html = `
-    <div style="font-family: Arial, sans-serif; line-height: 1.5; color: #111;">
-      <h2>Ticket Purchased Successfully</h2>
-      <p>Your event pass is confirmed.</p>
-      <ul>
-        <li><strong>Event:</strong> ${input.eventTitle}</li>
-        <li><strong>Date:</strong> ${input.eventDate}</li>
-        <li><strong>Time:</strong> ${input.eventTime}</li>
-        <li><strong>Venue:</strong> ${input.eventVenue}</li>
-        <li><strong>Payment ID:</strong> ${input.paymentId}</li>
-      </ul>
-      <p>Show this QR pass at entry:</p>
-      <img src="${qrUrl}" alt="Ticket QR Code" width="220" height="220" />
-      <p style="font-size:12px;color:#555">If image is blocked, pass code: ${input.qrValue}</p>
-    </div>
-  `;
 
-  const smtpUser = process.env.SMTP_USER;
-  const smtpPass = process.env.SMTP_PASS;
-  if (smtpUser && smtpPass) {
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: smtpUser,
-        pass: smtpPass,
-      },
-    });
-
-    await transporter.sendMail({
-      from: fromEmail,
-      to: input.to,
-      subject: "Your Nexor Event Ticket",
-      html,
-    });
-    return true;
-  }
-
-  const resendApiKey = process.env.RESEND_API_KEY;
-  if (resendApiKey) {
-    const response = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${resendApiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from: fromEmail,
-        to: [input.to],
-        subject: "Your Nexor Event Ticket",
-        html,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error("Resend email send failed.");
-    }
-    return true;
-  }
-
-  return false;
-}
 
 export async function POST(req: Request) {
   try {
@@ -167,26 +96,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: upsertError.message }, { status: 500 });
     }
 
-    let emailSent = false;
-    try {
-      emailSent = await sendTicketEmail({
-        to: userEmail,
-        eventTitle,
-        eventDate,
-        eventTime,
-        eventVenue,
-        paymentId: razorpay_payment_id,
-        qrValue,
-      });
-    } catch (emailError) {
-      console.error("Ticket email send failed:", emailError);
-      emailSent = false;
-    }
-
     return NextResponse.json({
       ok: true,
       message: "Ticket purchased successfully",
-      emailSent,
       ticket: {
         event_id: eventId,
         user_email: userEmail,
