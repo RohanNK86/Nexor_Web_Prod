@@ -34,6 +34,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+      // Clear ticket cache if no user
+      if (!session?.user) {
+        window.localStorage.removeItem("nexor_purchased_tickets");
+      }
     });
 
     // Listen for changes
@@ -44,11 +48,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
-      
-      if (event === 'SIGNED_OUT') {
-        // Clear anything extra if needed
-        setSession(null);
-        setUser(null);
+      // Always clear ticket cache on user change or logout
+      if (!session?.user || event === 'SIGNED_OUT' || event === 'USER_DELETED') {
+        window.localStorage.removeItem("nexor_purchased_tickets");
       }
     });
 
