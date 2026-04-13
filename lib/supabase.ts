@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 let supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
@@ -9,11 +9,11 @@ if (supabaseUrl && !supabaseUrl.startsWith("http")) {
 }
 
 // Initialize as null first
-let client;
+let client: SupabaseClient<any> | undefined;
 
 try {
   if (supabaseUrl && supabaseAnonKey) {
-    client = createClient(supabaseUrl, supabaseAnonKey, {
+    client = createClient<any>(supabaseUrl, supabaseAnonKey, {
       auth: {
         flowType: "pkce",
         persistSession: true,
@@ -30,5 +30,5 @@ try {
 }
 
 // export either the client or a placeholder that won't crash on load
-export const supabase = client as ReturnType<typeof createClient>;
+export const supabase = client as SupabaseClient<any>;
 
