@@ -50,20 +50,22 @@ export default function CheckoutPage() {
 
       const { data, error } = await supabase
         .from("orders")
-        .insert({
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          email: formData.email,
-          phone: formData.phone,
-          address: formData.address,
-          city: formData.city,
-          state: formData.state,
-          zip: formData.zip,
-          country: formData.country,
-          totalAmount: total,
-          items: JSON.stringify(cartItems.map(item => ({ id: item.id, name: item.name, quantity: item.quantity, price: item.price }))),
-          createdAt: new Date().toISOString(),
-        })
+        .insert([
+          {
+            firstName: formData.firstName,
+            lastName: formData.lastName,
+            email: formData.email,
+            phone: formData.phone,
+            address: formData.address,
+            city: formData.city,
+            state: formData.state,
+            zip: formData.zip,
+            country: formData.country,
+            totalAmount: total,
+            items: JSON.stringify(cartItems.map(item => ({ id: item.id, name: item.name, quantity: item.quantity, price: item.price }))),
+            createdAt: new Date().toISOString(),
+          }
+        ])
         .select()
         .single();
 
