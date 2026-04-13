@@ -49,7 +49,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(session?.user ?? null);
       setLoading(false);
       // Always clear ticket cache on user change or logout
-      if (!session?.user || event === 'SIGNED_OUT' || event === 'USER_DELETED') {
+      if (!session?.user || event === 'SIGNED_OUT') {
         window.localStorage.removeItem("nexor_purchased_tickets");
       }
     });
