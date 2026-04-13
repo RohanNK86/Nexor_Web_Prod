@@ -1,91 +1,415 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { useTheme } from "@/lib/ThemeContext";
+import { eventsService, Event } from "@/lib/events-service";
+import { loadRazorpayScript } from "@/lib/razorpay";
+import { QRCodeSVG } from "qrcode.react";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/lib/AuthContext";
+
+interface PurchasedTicket {
+  event_id: string;
+  payment_id: string;
+  qr_value: string;
+}
+
+const TICKET_STORAGE_KEY = "nexor_purchased_tickets";
 
 export default function EventsPage() {
   const { theme } = useTheme();
+  const { user } = useAuth();
   const isDark = theme === "dark";
+  const [events, setEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [showPurchaseSection, setShowPurchaseSection] = useState(false);
+  const [showSuccessTicket, setShowSuccessTicket] = useState(false);
+  const [activeEventDetails, setActiveEventDetails] = useState<string | null>(null);
+  const [paymentId, setPaymentId] = useState<string | null>(null);
+  const [purchasedTickets, setPurchasedTickets] = useState<Record<string, PurchasedTicket>>({});
 
   const posterUrl = "https://ajfonpzetlpmenxemofe.supabase.co/storage/v1/object/sign/events/Screenshot%202026-04-11%20205913.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV85NjQ3ZWJkYy1kYmRiLTQyYTgtOGRkOS1mMjliZWM0ZTU5NzEiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJldmVudHMvU2NyZWVuc2hvdCAyMDI2LTA0LTExIDIwNTkxMy5wbmciLCJpYXQiOjE3NzU5MjE1NjMsImV4cCI6MTc3ODUxMzU2M30.VQY1pRZstT9SF1bJp0u9ZdaMsuMqKcCzUMyoK5D1jSI";
 
-  return (
-    <div className={`min-h-screen relative overflow-hidden transition-colors duration-500 ${isDark ? 'bg-[#06060e]' : 'bg-[#f5f0e6]'}`}>
+  useEffect(() => {
+    const storedTickets = window.localStorage.getItem(TICKET_STORAGE_KEY);
+    if (storedTickets) {
+      try {
+        const parsed = JSON.parse(storedTickets) as Record<string, PurchasedTicket>;
+        setPurchasedTickets(parsed);
+      } catch (storageError) {
+        console.error("Invalid local ticket cache:", storageError);
+      }
+    }
+
+    const fetchEvents = async () => {
+      const data = await eventsService.getAllEvents();
+      if (data.length === 0) {
+        const defaultEvent: Event = {
+          id: "bollyvibe-01",
+          title: "Torrio BollyVibe",
+          description:
+            "BollyVibe is calling. This Saturday, April 18th, we turn up the desi energy Bollywood style. Lights, beats, glam and nonstop vibes. Dress to slay and dance like a star.",
+          price: 999,
+          date: "18th April, Sat",
+          time: "12:00 PM",
+          venue: "Toy Boy, Lulu Mall",
+          image_url: posterUrl
+        };
+        setEvents([defaultEvent]);
+      } else {
+        setEvents(data);
+      }
+      setLoading(false);
+    };
+
+    fetchEvents();
+  }, [posterUrl]);
+
+  useEffect(() => {
+    const loadPurchasedTickets = async () => {
+      if (!supabase || !user?.email) {
+        setPurchasedTickets({});
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("event_tickets")
+        .select("event_id,payment_id,qr_value")
+        .eq("user_email", user.email);
+
+      if (error || !data) {
+        console.error("Failed to load purchased tickets:", error);
+        return;
+      }
+
+      const ticketMap = data.reduce((acc: Record<string, PurchasedTicket>, ticket: any) => {
+        acc[ticket.event_id] = ticket;
+        return acc;
+      }, {});
+
+      setPurchasedTickets((prev) => {
+        const merged = { ...prev, ...ticketMap };
+        window.localStorage.setItem(TICKET_STORAGE_KEY, JSON.stringify(merged));
+        return merged;
+      });
+    };
+
+    loadPurchasedTickets();
+  }, [user?.email]);
+
+  const handleRegister = (eventId: string) => {
+    setActiveEventDetails(activeEventDetails === eventId ? null : eventId);
+  };
+
+  const openPurchaseSection = (event: Event) => {
+    if (purchasedTickets[event.id]) {
+      setSelectedEvent(event);
+      setPaymentId(purchasedTickets[event.id].payment_id);
+      setShowSuccessTicket(true);
+      return;
+    }
+
+    setSelectedEvent(event);
+    setShowPurchaseSection(true);
+  };
+
+  const handlePayment = async (event: Event) => {
+    if (!user?.email) {
+      alert("Please login first to purchase tickets.");
+      return;
+    }
+
+    if (purchasedTickets[event.id]) {
+      alert("You have already purchased this ticket. Click View Ticket.");
+      return;
+    }
+
+    const paymentAmountInr = 2; // Temporary test amount
+    const razorpayKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
+    if (!razorpayKey || razorpayKey === "YOUR_RAZORPAY_KEY_ID") {
+      alert("Razorpay public key missing. Set NEXT_PUBLIC_RAZORPAY_KEY_ID in .env.local and restart the dev server.");
+      return;
+    }
+
+    const res = await loadRazorpayScript();
+    if (!res) {
+      alert("Razorpay SDK failed to load. Please check your connection.");
+      return;
+    }
+
+    try {
+      const orderRes = await fetch("/api/razorpay/order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount: paymentAmountInr }),
+      });
+
+      if (!orderRes.ok) {
+        const failedOrder = await orderRes.json().catch(() => ({}));
+        alert(`Unable to create Razorpay order: ${failedOrder.error || "Unknown error"}`);
+        return;
+      }
+
+      const orderData = await orderRes.json();
       
-      {/* Background Decorative Elements */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] bg-[#A855F7]/10 rounded-full blur-[120px]" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#EAB308]/5 rounded-full blur-[100px]" />
-        {/* Animated grid overlay */}
-        <div className={`absolute inset-0 opacity-[0.03] ${isDark ? 'invert' : ''}`} style={{ backgroundImage: 'linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)', backgroundSize: '50px 50px' }} />
+      if (orderData.error || !orderData.id) {
+        alert("CRITICAL ERROR: " + (orderData.error || "Order creation failed") + "\n\nREQUIRED ACTION: Go to .env.local and check if you have entered VALID Razorpay keys.");
+        return;
+      }
+
+      const options = {
+        key: razorpayKey,
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: "Nexor Events",
+        description: `Admission Pass for ${event.title}`,
+        order_id: orderData.id,
+        handler: (response: any) => {
+          const confirmPayment = async () => {
+            try {
+              const confirmRes = await fetch("/api/tickets/confirm", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  eventId: event.id,
+                  eventTitle: event.title,
+                  eventDate: event.date,
+                  eventTime: event.time,
+                  eventVenue: event.venue,
+                  amountInr: paymentAmountInr,
+                  userEmail: user.email,
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_signature: response.razorpay_signature,
+                }),
+              });
+
+              const confirmData = await confirmRes.json();
+              if (!confirmRes.ok) {
+                alert(confirmData.error || "Payment captured but ticket confirmation failed.");
+                return;
+              }
+
+              setPurchasedTickets((prev) => {
+                const next = {
+                  ...prev,
+                  [event.id]: {
+                    event_id: event.id,
+                    payment_id: response.razorpay_payment_id,
+                    qr_value: confirmData.ticket?.qr_value || `NEXOR-EVENT-${event.id}-${response.razorpay_payment_id}`,
+                  },
+                };
+                window.localStorage.setItem(TICKET_STORAGE_KEY, JSON.stringify(next));
+                return next;
+              });
+              setPaymentId(response.razorpay_payment_id);
+              setShowPurchaseSection(false);
+              setShowSuccessTicket(true);
+              alert(
+                confirmData.emailSent
+                  ? "Payment successful. Ticket purchased and QR pass sent to your email."
+                  : "Payment successful. Ticket purchased and saved. Email is not configured yet."
+              );
+            } catch (confirmError) {
+              console.error(confirmError);
+              alert("Payment succeeded but ticket confirmation failed. Please contact support with your payment ID.");
+            }
+          };
+
+          confirmPayment();
+        },
+        prefill: {
+          name: user.user_metadata?.full_name || "Nexor User",
+          email: user.email,
+          contact: "919999999999"
+        },
+        notes: {
+          event_id: event.id,
+          venue: event.venue
+        },
+        theme: { color: "#FACC15" },
+        modal: {
+          ondismiss: () => {
+            console.log("Payment window closed");
+          }
+        },
+      };
+
+      const paymentObject = new (window as any).Razorpay(options);
+      paymentObject.on("payment.failed", (response: any) => {
+        const reason = response?.error?.description || "Payment failed at Razorpay checkout.";
+        alert(reason);
+      });
+      paymentObject.open();
+    } catch (err) {
+      console.error(err);
+      alert("Payment initiation failed. Please check the browser console.");
+    }
+  };
+
+  const closeTicket = () => {
+    setShowSuccessTicket(false);
+    setSelectedEvent(null);
+    setPaymentId(null);
+  };
+
+  return (
+    <div className={`min-h-screen relative transition-colors duration-700 ${isDark ? 'bg-[#030308]' : 'bg-[#FAF9F6]'}`}>
+      
+      {/* Dynamic Background */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className={`absolute -top-1/4 -right-1/4 w-[70%] h-[70%] rounded-full blur-[150px] transition-opacity duration-1000 ${isDark ? 'bg-purple-600/10 opacity-60' : 'bg-amber-200/20 opacity-40'}`} />
+        <div className={`absolute -bottom-1/4 -left-1/4 w-[60%] h-[60%] rounded-full blur-[120px] transition-opacity duration-1000 ${isDark ? 'bg-amber-500/5 opacity-50' : 'bg-purple-100/30 opacity-30'}`} />
+        <div className={`absolute inset-0 opacity-[0.05] ${isDark ? 'invert-0' : 'invert'}`} 
+             style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #fff 1px, transparent 0)', backgroundSize: '40px 40px' }} />
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-6 pt-24 pb-32">
-        <div className="flex flex-col lg:flex-row gap-16 items-start">
-          
-          {/* Left Side: Content */}
-          <div className="flex-1 space-y-8 animate-fade-up">
-            <div className="space-y-4">
-              <span className={`inline-block px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.3em] border ${
-                isDark ? 'bg-[#A855F7]/10 border-[#A855F7]/30 text-purple-400' : 'bg-black text-white border-black'
-              }`}>
-                Next Big Move
-              </span>
-              <h1 className="text-6xl md:text-8xl font-black italic tracking-tighter leading-[0.85] uppercase">
-                <span className={isDark ? 'text-[#f0eeff]' : 'text-black'}>Bolly</span>
-                <br />
-                <span className="text-[#EAB308] drop-shadow-[0_0_15px_rgba(234,179,8,0.3)]">Vibe</span>
-                <br />
-                <span className={`text-4xl md:text-5xl font-black normal-case tracking-normal ${isDark ? 'text-white/40' : 'text-gray-400'}`}>
-                  Coming Soon
-                </span>
-              </h1>
-            </div>
-
-            <p className={`text-lg md:text-xl font-medium max-w-md leading-relaxed ${isDark ? 'text-white/60' : 'text-gray-600'}`}>
-              The ultimate Bollywood experience is being curated just for you. Get ready for a night of rhythm, beats, and pure energy.
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-4">
-              <button className="px-10 py-5 bg-[#EAB308] text-black font-black uppercase text-xl rounded-2xl shadow-[0_8px_30px_rgba(234,179,8,0.3)] hover:scale-105 active:scale-95 transition-all">
-                Notify Me
-              </button>
-              <Link href="/" className={`px-10 py-5 font-black uppercase text-xl rounded-2xl border flex items-center justify-center gap-2 transition-all hover:bg-white/5 ${
-                isDark ? 'border-white/10 text-white' : 'border-gray-200 text-black'
-              }`}>
-                Back to Home
-              </Link>
-            </div>
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 lg:pt-32 pb-20 sm:pb-28 lg:pb-40">
+        <header className="mb-10 sm:mb-14 lg:mb-20 space-y-3 sm:space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="h-[2px] w-12 bg-amber-400" />
+            <span className="text-amber-400 font-black tracking-[0.3em] sm:tracking-[0.4em] uppercase text-[9px] sm:text-[10px]">Prime Experiences</span>
           </div>
+          <h1 className={`text-4xl sm:text-6xl lg:text-8xl font-black uppercase tracking-tight sm:tracking-tighter leading-[0.95] ${isDark ? 'text-white' : 'text-black'}`}>
+            Live<br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-600 drop-shadow-[0_0_20px_rgba(251,191,36,0.2)]">Events</span>
+          </h1>
+        </header>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 sm:gap-7 lg:gap-10">
+          {events.map((event, idx) => (
+            <div key={event.id} className="group relative rounded-[2rem] sm:rounded-[2.5rem] p-2 sm:p-3 lg:p-4 transition-all duration-500 hover:-translate-y-1 sm:hover:-translate-y-2 animate-fade-up" style={{ animationDelay: `${idx * 0.1}s` }}>
+              <div className={`relative h-full rounded-[1.8rem] sm:rounded-[2.2rem] overflow-hidden border transition-all duration-500 ${isDark ? 'bg-white/[0.03] border-white/10 group-hover:border-amber-400/30' : 'bg-white border-black/5 shadow-xl'}`}>
+                <div className="relative aspect-[4/5] overflow-hidden m-3 sm:m-4 rounded-[1.4rem] sm:rounded-[2rem]">
+                  <Image src={event.image_url} alt={event.title} fill className="object-cover transition-transform duration-700 group-hover:scale-110" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60" />
+                  <div className="absolute top-4 right-4 sm:top-6 sm:right-6 px-3 sm:px-5 py-1.5 sm:py-2 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 text-white font-black text-xs sm:text-sm">₹{event.price}</div>
+                </div>
+                <div className="px-4 sm:px-6 lg:px-8 pb-5 sm:pb-7 lg:pb-8 space-y-4 sm:space-y-6">
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <h3 className={`text-xl sm:text-2xl font-black uppercase italic tracking-tight leading-tight ${isDark ? 'text-white' : 'text-black'}`}>{event.title}</h3>
+                    <p className={`text-xs sm:text-sm line-clamp-3 sm:line-clamp-2 leading-relaxed min-h-[54px] sm:h-10 ${isDark ? 'text-white/50' : 'text-black/50'}`}>{event.description}</p>
+                  </div>
+                  <div className={`overflow-hidden transition-all duration-500 ${activeEventDetails === event.id ? 'max-h-48 opacity-100 mt-3 sm:mt-4' : 'max-h-0 opacity-0'}`}>
+                    <div className={`p-4 sm:p-5 rounded-2xl space-y-2 border ${isDark ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'}`}>
+                      <p className="text-xs font-bold uppercase tracking-widest text-amber-400">📍 {event.venue}</p>
+                      <p className={`text-[11px] sm:text-xs font-medium ${isDark ? 'text-white/60' : 'text-black/60'}`}>📅 {event.date} | ⏰ {event.time}</p>
+                      <p className={`text-[11px] sm:text-xs font-medium ${isDark ? 'text-white/60' : 'text-black/60'}`}>🎧 Featuring: DJ Merli, Super Bro&apos;s</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2.5 sm:gap-3 pt-1 sm:pt-2">
+                    <button onClick={() => handleRegister(event.id)} className={`flex-1 py-3 sm:py-3.5 rounded-xl sm:rounded-2xl text-[10px] font-black uppercase tracking-[0.15em] sm:tracking-widest border transition-all ${isDark ? 'border-white/10 text-white hover:bg-white/5' : 'border-black/10 text-black hover:bg-black/5'}`}>{activeEventDetails === event.id ? "Hide Info" : "Details"}</button>
+                    <button onClick={() => openPurchaseSection(event)} className="flex-1 py-3 sm:py-3.5 rounded-xl sm:rounded-2xl text-[10px] font-black uppercase tracking-[0.15em] sm:tracking-widest bg-amber-400 text-black shadow-[0_10px_20px_-5px_rgba(251,191,36,0.3)] hover:bg-amber-300 transition-all">{purchasedTickets[event.id] ? "View Ticket" : "Tickets"}</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
 
-          {/* Right Side: Poster (Not screen full size, top right focus) */}
-          <div className="w-full lg:w-[450px] flex-shrink-0 animate-fade-up" style={{ animationDelay: '0.2s' }}>
-            <div className={`relative aspect-[3/4] rounded-[2.5rem] overflow-hidden border-8 shadow-2xl group transition-all hover:scale-[1.02] ${
-              isDark ? 'border-white/5 shadow-purple-500/10' : 'border-white shadow-xl'
-            }`}>
-              <Image 
-                src={posterUrl} 
-                alt="BollyVibe Poster" 
-                fill
-                className="object-cover transition-transform duration-700 group-hover:scale-110"
-                priority
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60" />
-              
-              {/* Floating Badge on Poster */}
-              <div className="absolute bottom-8 left-8">
-                <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-2 rounded-full border border-white/20">
-                  <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-                  <span className="text-white text-[10px] font-black uppercase tracking-widest">Waitlist Open</span>
+      {/* Purchase Modal */}
+      {showPurchaseSection && selectedEvent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/95 backdrop-blur-md animate-fade-in overflow-y-auto">
+          <div className={`max-w-4xl w-full rounded-[1.8rem] sm:rounded-[3rem] lg:rounded-[3.5rem] overflow-hidden shadow-2xl relative my-6 ${isDark ? 'bg-[#0a0a14] border border-white/10' : 'bg-white'}`}>
+            <button onClick={() => setShowPurchaseSection(false)} className="absolute top-4 right-4 sm:top-7 sm:right-7 lg:top-10 lg:right-10 w-9 h-9 sm:w-11 sm:h-11 lg:w-12 lg:h-12 rounded-full flex items-center justify-center bg-white/10 text-white hover:bg-white/20 transition-all z-20">✕</button>
+            <div className="flex flex-col lg:flex-row">
+              <div className="w-full lg:w-[45%] relative aspect-[4/5] lg:aspect-auto">
+                <Image src={selectedEvent.image_url} alt="Purchase Poster" fill className="object-cover" />
+              </div>
+              <div className="p-6 sm:p-9 lg:p-14 flex-1 space-y-7 sm:space-y-8 lg:space-y-10">
+                <div className="space-y-3 sm:space-y-4">
+                  <div className="flex items-center gap-2"><div className="h-1 w-6 bg-amber-400" /><span className="text-amber-400 text-[10px] font-black uppercase tracking-[0.3em]">Confirmation</span></div>
+                  <h3 className={`text-2xl sm:text-3xl lg:text-5xl font-black uppercase italic tracking-tight sm:tracking-tighter leading-none ${isDark ? 'text-white' : 'text-black'}`}>{selectedEvent.title}</h3>
+                </div>
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3 sm:gap-4 p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white/5 border border-white/5">
+                    <span className="text-xl sm:text-2xl">🏛️</span>
+                    <div><p className="font-black text-[10px] uppercase text-amber-400 mb-1">Venue</p><p className={`font-bold text-sm ${isDark ? 'text-white' : 'text-black'}`}>{selectedEvent.venue}</p></div>
+                  </div>
+                  <div className="flex items-start gap-3 sm:gap-4 p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white/5 border border-white/5">
+                    <span className="text-xl sm:text-2xl">⏳</span>
+                    <div><p className="font-black text-[10px] uppercase text-amber-400 mb-1">Schedule</p><p className={`font-bold text-sm ${isDark ? 'text-white' : 'text-black'}`}>{selectedEvent.date} @ {selectedEvent.time}</p></div>
+                  </div>
+                </div>
+                <div className="pt-6 sm:pt-8 lg:pt-10 border-t border-white/10 space-y-6 sm:space-y-8">
+                  <div className="flex justify-between items-end">
+                    <div className="space-y-1"><p className={`text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-white/40' : 'text-black/40'}`}>Grand Total</p><p className={`text-xl font-bold ${isDark ? 'text-white' : 'text-black'}`}>All Access Pass</p></div>
+                    <span className="text-3xl sm:text-4xl lg:text-5xl font-black text-amber-400">₹{selectedEvent.price}</span>
+                  </div>
+                  <button onClick={() => handlePayment(selectedEvent)} className="w-full py-4 sm:py-5 lg:py-6 bg-amber-400 text-black font-black uppercase text-[10px] sm:text-xs tracking-[0.2em] rounded-2xl sm:rounded-[2rem] shadow-[0_20px_40px_-10px_rgba(251,191,36,0.4)] hover:scale-[1.02] transition-all">Complete Payment</button>
                 </div>
               </div>
             </div>
           </div>
-
         </div>
-      </div>
+      )}
+
+      {/* SUCCESS TICKET SECTION */}
+      {showSuccessTicket && selectedEvent && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-4 bg-[#030308] animate-fade-in overflow-y-auto">
+          <div className="max-w-md w-full bg-[#12121e] rounded-[2rem] sm:rounded-[3rem] p-5 sm:p-8 lg:p-10 relative border border-white/10 shadow-[0_0_100px_rgba(251,191,36,0.15)] text-center space-y-6 sm:space-y-8 lg:space-y-10 my-auto">
+            <header className="space-y-3 sm:space-y-4">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-6">
+                <span className="text-3xl sm:text-4xl">🎟️</span>
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-black uppercase text-white tracking-[0.15em] sm:tracking-widest">Booking Confirmed</h2>
+              <p className="text-white/40 text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.15em] sm:tracking-widest break-all">Payment Success ID: {paymentId}</p>
+            </header>
+
+            {/* THE TICKET */}
+            <div className="bg-white rounded-[1.6rem] sm:rounded-[2.2rem] p-4 sm:p-6 lg:p-8 space-y-5 sm:space-y-7 lg:space-y-8 relative overflow-hidden group">
+              {/* Ticket Notches */}
+              <div className="absolute -left-4 top-1/2 -translate-y-1/2 w-8 h-8 bg-[#12121e] rounded-full border-r border-white/5" />
+              <div className="absolute -right-4 top-1/2 -translate-y-1/2 w-8 h-8 bg-[#12121e] rounded-full border-l border-white/5" />
+              
+              <div className="space-y-4 sm:space-y-6">
+                <h3 className="text-xl sm:text-2xl font-black text-black uppercase italic tracking-tight leading-none">{selectedEvent.title}</h3>
+                <div className="h-px bg-black/5 w-full" />
+                <div className="grid grid-cols-2 gap-4 text-left">
+                  <div className="space-y-1">
+                    <p className="text-[8px] font-black uppercase text-black/30 tracking-widest">Date</p>
+                    <p className="text-xs font-bold text-black">{selectedEvent.date}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[8px] font-black uppercase text-black/30 tracking-widest">Time</p>
+                    <p className="text-xs font-bold text-black">{selectedEvent.time}</p>
+                  </div>
+                </div>
+                <div className="text-left space-y-1">
+                  <p className="text-[8px] font-black uppercase text-black/30 tracking-widest">Venue</p>
+                  <p className="text-xs font-bold text-black">{selectedEvent.venue}</p>
+                </div>
+              </div>
+
+              {/* QR CODE SECTION */}
+              <div className="pt-8 border-t border-black/5 flex flex-col items-center space-y-4">
+                <div className="p-4 bg-white border-2 border-black/5 rounded-3xl group-hover:scale-105 transition-transform duration-500">
+                  <QRCodeSVG 
+                    value={purchasedTickets[selectedEvent.id]?.qr_value || `NEXOR-EVENT-${selectedEvent.id}-${paymentId}`} 
+                    size={128}
+                    level="H"
+                    includeMargin={false}
+                  />
+                </div>
+                <p className="text-[8px] font-black uppercase tracking-[0.28em] sm:tracking-[0.4em] text-black/20">Digital Admission Pass</p>
+              </div>
+            </div>
+
+            <footer className="pt-2 sm:pt-4 lg:pt-6 space-y-3 sm:space-y-4">
+              <button 
+                onClick={closeTicket}
+                className="w-full py-4 sm:py-5 bg-amber-400 text-black font-black uppercase text-[10px] sm:text-xs tracking-[0.2em] sm:tracking-widest rounded-xl sm:rounded-2xl shadow-lg hover:scale-[1.02] transition-all"
+              >
+                Return to Events
+              </button>
+              <p className="text-[10px] font-medium text-white/30">Screenshot this pass for entry at the venue</p>
+            </footer>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

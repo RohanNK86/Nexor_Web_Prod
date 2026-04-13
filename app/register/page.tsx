@@ -22,13 +22,20 @@ export default function RegisterPage() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!supabase) {
+      setError("Supabase not initialized. Check your environment variables.");
+      return;
+    }
+
     setLoading(true);
     setError(null);
+    const redirectBase = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
 
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
+        emailRedirectTo: `${redirectBase}/auth/callback`,
         data: {
           first_name: firstName,
           last_name: lastName,

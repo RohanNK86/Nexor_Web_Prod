@@ -15,6 +15,7 @@ try {
   if (supabaseUrl && supabaseAnonKey) {
     client = createClient(supabaseUrl, supabaseAnonKey, {
       auth: {
+        flowType: "pkce",
         persistSession: true,
         autoRefreshToken: true,
         detectSessionInUrl: true,

@@ -1,10 +1,108 @@
+"use client";
+
 import { cartItems } from "@/lib/data";
 import Image from "next/image";
+import { useState } from "react";
+import { supabase } from "@/lib/supabase";
+import { useRouter } from "next/navigation";
 
 export default function CheckoutPage() {
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [orderStatus, setOrderStatus] = useState<"idle" | "success" | "error">("idle");
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    address: "",
+    city: "",
+    state: "",
+    zip: "",
+    country: "United States",
+  });
+
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const tax = Math.round(subtotal * 0.08);
   const total = subtotal + tax;
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handlePlaceOrder = async () => {
+    if (!formData.email || !formData.firstName) {
+      setErrorMessage("Please fill in the required fields.");
+      setOrderStatus("error");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setOrderStatus("idle");
+    setErrorMessage("");
+
+    try {
+      if (!supabase) {
+        throw new Error("Supabase client is not configured. Check NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.");
+      }
+
+      const { data, error } = await supabase
+        .from("orders")
+        .insert({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          phone: formData.phone,
+          address: formData.address,
+          city: formData.city,
+          state: formData.state,
+          zip: formData.zip,
+          country: formData.country,
+          totalAmount: total,
+          items: JSON.stringify(cartItems.map(item => ({ id: item.id, name: item.name, quantity: item.quantity, price: item.price }))),
+          createdAt: new Date().toISOString(),
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      console.log("Order saved to Supabase:", data);
+      setOrderStatus("success");
+      
+      // Optional: Clear cart or redirect
+      // For now, just show success
+      setTimeout(() => {
+        router.push("/");
+      }, 3000);
+
+    } catch (error: any) {
+      console.error("Supabase Error:", error);
+      setOrderStatus("error");
+      setErrorMessage(error.message || "Failed to place order. Please check your Supabase table permissions.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (orderStatus === "success") {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-center px-6">
+        <div className="space-y-6 max-w-md">
+          <div className="w-20 h-20 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto text-4xl">
+            ✓
+          </div>
+          <h1 className="text-3xl font-display font-bold text-white">Order Placed!</h1>
+          <p className="text-ash-400">
+            Thank you for your purchase. Your ticket information has been saved to Supabase.
+            Redirecting you home soon...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen pt-16 pb-28">
@@ -58,13 +156,13 @@ export default function CheckoutPage() {
                 Contact Information
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <FormField label="First Name" placeholder="Alex" />
-                <FormField label="Last Name" placeholder="Chen" />
+                <FormField label="First Name" placeholder="Alex" value={formData.firstName} onChange={(v) => handleInputChange("firstName", v)} />
+                <FormField label="Last Name" placeholder="Chen" value={formData.lastName} onChange={(v) => handleInputChange("lastName", v)} />
                 <div className="sm:col-span-2">
-                  <FormField label="Email Address" placeholder="alex@example.com" type="email" />
+                  <FormField label="Email Address" placeholder="alex@example.com" type="email" value={formData.email} onChange={(v) => handleInputChange("email", v)} />
                 </div>
                 <div className="sm:col-span-2">
-                  <FormField label="Phone Number" placeholder="+1 (555) 000-0000" type="tel" />
+                  <FormField label="Phone Number" placeholder="+1 (555) 000-0000" type="tel" value={formData.phone} onChange={(v) => handleInputChange("phone", v)} />
                 </div>
               </div>
             </section>
@@ -77,16 +175,20 @@ export default function CheckoutPage() {
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="sm:col-span-2">
-                  <FormField label="Street Address" placeholder="123 Main Street, Apt 4B" />
+                  <FormField label="Street Address" placeholder="123 Main Street, Apt 4B" value={formData.address} onChange={(v) => handleInputChange("address", v)} />
                 </div>
-                <FormField label="City" placeholder="New York" />
-                <FormField label="State / Province" placeholder="NY" />
-                <FormField label="ZIP / Postal Code" placeholder="10001" />
+                <FormField label="City" placeholder="New York" value={formData.city} onChange={(v) => handleInputChange("city", v)} />
+                <FormField label="State / Province" placeholder="NY" value={formData.state} onChange={(v) => handleInputChange("state", v)} />
+                <FormField label="ZIP / Postal Code" placeholder="10001" value={formData.zip} onChange={(v) => handleInputChange("zip", v)} />
                 <div>
                   <label className="block text-ash-400 text-xs uppercase tracking-widest mb-2">
                     Country
                   </label>
-                  <select className="w-full px-4 py-3 bg-obsidian-800 border border-white/8 rounded-xl text-ash-300 text-sm focus:outline-none focus:border-amber-400/30 transition-colors appearance-none">
+                  <select 
+                    value={formData.country}
+                    onChange={(e) => handleInputChange("country", e.target.value)}
+                    className="w-full px-4 py-3 bg-obsidian-800 border border-white/8 rounded-xl text-ash-300 text-sm focus:outline-none focus:border-amber-400/30 transition-colors appearance-none"
+                  >
                     <option>United States</option>
                     <option>United Kingdom</option>
                     <option>Canada</option>
@@ -133,7 +235,6 @@ export default function CheckoutPage() {
                 Payment Details
               </h2>
 
-              {/* Card number */}
               <div className="space-y-4">
                 <div>
                   <label className="block text-ash-400 text-xs uppercase tracking-widest mb-2">Card Number</label>
@@ -159,9 +260,20 @@ export default function CheckoutPage() {
               </div>
             </section>
 
+            {/* Status Messages */}
+            {orderStatus === "error" && (
+              <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm">
+                {errorMessage}
+              </div>
+            )}
+
             {/* Submit */}
-            <button className="w-full py-4 bg-amber-400 hover:bg-amber-300 text-black font-bold rounded-full text-sm tracking-wide transition-all hover:scale-[1.01] active:scale-98">
-              Place Order — ${total.toLocaleString()}
+            <button 
+              onClick={handlePlaceOrder}
+              disabled={isSubmitting}
+              className="w-full py-4 bg-amber-400 hover:bg-amber-300 disabled:bg-amber-400/50 disabled:cursor-not-allowed text-black font-bold rounded-full text-sm tracking-wide transition-all hover:scale-[1.01] active:scale-98"
+            >
+              {isSubmitting ? "Processing..." : `Place Order — $${total.toLocaleString()}`}
             </button>
 
             <p className="text-center text-ash-600 text-xs">
@@ -229,10 +341,14 @@ function FormField({
   label,
   placeholder,
   type = "text",
+  value,
+  onChange,
 }: {
   label: string;
   placeholder: string;
   type?: string;
+  value?: string;
+  onChange?: (val: string) => void;
 }) {
   return (
     <div>
@@ -240,6 +356,8 @@ function FormField({
       <input
         type={type}
         placeholder={placeholder}
+        value={value}
+        onChange={(e) => onChange?.(e.target.value)}
         className="w-full px-4 py-3 bg-obsidian-800 border border-white/8 rounded-xl text-white placeholder-ash-600 text-sm focus:outline-none focus:border-amber-400/30 focus:bg-obsidian-700 transition-all"
       />
     </div>

@@ -44,20 +44,27 @@ export default function LoginPage() {
     });
 
     if (error) {
-      setError(error.message);
+      const normalizedMessage = error.message.toLowerCase();
+      if (normalizedMessage.includes("invalid login credentials")) {
+        setError("Invalid email/password OR email not confirmed. Please verify your email first, then try again.");
+      } else {
+        setError(error.message);
+      }
       setLoading(false);
     } else {
-      router.push("/");
+      router.push("/events");
       router.refresh();
     }
   };
 
   const handleSocialLogin = async (provider: 'google') => {
     if (!supabase) return;
+    const redirectBase =
+      process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `${redirectBase}/auth/callback`,
       },
     });
     if (error) setError(error.message);

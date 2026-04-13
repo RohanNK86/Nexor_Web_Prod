@@ -1,5 +1,6 @@
 {
-  "/_not-found/page": "app/_not-found/page.js",
+  "/events/page": "app/events/page.js",
   "/page": "app/page.js",
-  "/events/page": "app/events/page.js"
+  "/nexor_pay/page": "app/nexor_pay/page.js",
+  "/flash/page": "app/flash/page.js"
 }

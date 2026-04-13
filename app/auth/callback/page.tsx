@@ -9,34 +9,61 @@ export default function AuthCallback() {
 
   useEffect(() => {
     const handleCallback = async () => {
-      if (!supabase) return;
+      if (!supabase) {
+        router.push("/login?error=" + encodeURIComponent("Supabase is not configured."));
+        return;
+      }
 
-      // The supabase client automatically handles the session extraction from the URL
-      // for client-side Auth. We just need to wait a moment and then redirect.
-      const { data: { session }, error } = await supabase.auth.getSession();
+      const url = new URL(window.location.href);
+      const code = url.searchParams.get("code");
+      const callbackError =
+        url.searchParams.get("error_description") || url.searchParams.get("error");
+
+      if (callbackError) {
+        router.push("/login?error=" + encodeURIComponent(callbackError));
+        return;
+      }
+
+      // PKCE flow: explicit exchange from callback code to real session.
+      if (code) {
+        const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+        if (exchangeError) {
+          const msg = exchangeError.message?.toLowerCase() || "";
+          const isMissingVerifier =
+            msg.includes("pkce code verifier") ||
+            msg.includes("code verifier not found");
+
+          // This can happen if the verifier key was cleared, but session may still be available.
+          if (!isMissingVerifier) {
+            router.push("/login?error=" + encodeURIComponent(exchangeError.message));
+            return;
+          }
+        }
+      }
+
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.getSession();
       
       if (error) {
         console.error("Auth Callback Error:", error.message);
         router.push("/login?error=" + encodeURIComponent(error.message));
+      } else if (!session?.user) {
+        router.push("/login?error=" + encodeURIComponent("Unable to complete sign-in. Please try again."));
       } else {
-        // If a new user, Google meta_data has 'full_name' but maybe not 'first_name' & 'last_name'
-        // which your registration form uses.
-        if (session?.user) {
-          const metadata = session.user.user_metadata;
-          if (!metadata.first_name && metadata.full_name) {
-            // Optional: You could update the user's metadata here if needed
-            // to maintain consistency with the registration page format
-            const names = metadata.full_name.split(" ");
-            await supabase.auth.updateUser({
-              data: {
-                first_name: names[0],
-                last_name: names.slice(1).join(" "),
-              }
-            });
-          }
+        const metadata = session.user.user_metadata;
+        if (!metadata.first_name && metadata.full_name) {
+          const names = metadata.full_name.split(" ");
+          await supabase.auth.updateUser({
+            data: {
+              first_name: names[0],
+              last_name: names.slice(1).join(" "),
+            },
+          });
         }
-        
-        router.push("/");
+
+        router.push("/events");
         router.refresh();
       }
     };

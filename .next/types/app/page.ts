@@ -1,4 +1,4 @@
-// File: C:\Users\chira\Desktop\nexor-webapp - Copy\Nexor-WebApp\app\page.tsx
+// File: D:\Nexor_WEB\nexorsuper-web1.0.0\app\page.tsx
 import * as entry from '../../../app/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 
