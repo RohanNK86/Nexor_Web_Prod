@@ -3,41 +3,56 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useAuth } from "@/lib/AuthContext";
 import { supabase } from "@/lib/supabase";
-import { Html5QrcodeScanner } from "html5-qrcode";
+import { Html5Qrcode } from "html5-qrcode";
 
 export default function AdminScanner() {
   const { user, loading } = useAuth();
   const [scanResult, setScanResult] = useState<any>(null);
   const [scanning, setScanning] = useState(true);
-  const scannerRef = useRef<Html5QrcodeScanner | null>(null);
+  const [cameraError, setCameraError] = useState<string | null>(null);
+  const scannerRef = useRef<Html5Qrcode | null>(null);
 
   useEffect(() => {
     if (!user || loading) return;
 
     if (scanning) {
       // Delay initialization slightly to ensure DOM element is ready
-      const initTimer = setTimeout(() => {
-        scannerRef.current = new Html5QrcodeScanner(
-          "qr-reader",
-          { fps: 10, qrbox: { width: 250, height: 250 } },
-          /* verbose= */ false
-        );
-
-        scannerRef.current.render(onScanSuccess, onScanFailure);
+      const initTimer = setTimeout(async () => {
+        try {
+          const html5QrCode = new Html5Qrcode("qr-reader");
+          scannerRef.current = html5QrCode;
+          
+          await html5QrCode.start(
+            { facingMode: "environment" },
+            { fps: 10, qrbox: { width: 250, height: 250 } },
+            onScanSuccess,
+            onScanFailure
+          );
+          setCameraError(null);
+        } catch (err: any) {
+          console.error("Camera access error:", err);
+          setCameraError(err.message || "Failed to start camera.");
+        }
       }, 100);
 
       return () => clearTimeout(initTimer);
     } else {
       if (scannerRef.current) {
-        scannerRef.current.clear().catch(error => {
-          console.error("Failed to clear html5QrcodeScanner. ", error);
-        });
+        try {
+          scannerRef.current.stop().then(() => {
+            scannerRef.current?.clear();
+          }).catch(() => {});
+        } catch(e) {}
       }
     }
 
     return () => {
       if (scannerRef.current) {
-         scannerRef.current.clear().catch(e => console.error(e));
+         try {
+           scannerRef.current.stop().then(() => {
+             scannerRef.current?.clear();
+           }).catch(() => {});
+         } catch(e) {}
       }
     };
   }, [user, loading, scanning]);
@@ -45,7 +60,12 @@ export default function AdminScanner() {
   const onScanSuccess = async (decodedText: string) => {
     setScanning(false);
     if (scannerRef.current) {
-      await scannerRef.current.clear();
+      try {
+        await scannerRef.current.stop();
+        scannerRef.current.clear();
+      } catch (e) {
+        console.error(e);
+      }
     }
 
     try {
@@ -120,8 +140,18 @@ export default function AdminScanner() {
 
          {scanning ? (
            <div className="bg-black/40 rounded-3xl overflow-hidden p-2 border border-white/10 shadow-2xl">
-             <div id="qr-reader" className="w-full bg-white" style={{ borderRadius: '1.2rem', overflow: 'hidden' }}></div>
-             <p className="text-center text-xs text-white/30 uppercase tracking-widest mt-4 pb-2">Align QR Code within the frame</p>
+             {cameraError ? (
+               <div className="p-8 text-center text-rose-400 bg-rose-500/10 rounded-2xl">
+                 <p className="font-bold mb-2">Camera Error</p>
+                 <p className="text-sm opacity-80">{cameraError}</p>
+                 <p className="text-xs mt-4 opacity-60">If testing on mobile over Wi-Fi, ensure you use HTTPS (e.g., via Ngrok or deployment).</p>
+               </div>
+             ) : (
+               <>
+                 <div id="qr-reader" className="w-full bg-black text-white" style={{ borderRadius: '1.2rem', overflow: 'hidden' }}></div>
+                 <p className="text-center text-xs text-white/30 uppercase tracking-widest mt-4 pb-2">Align QR Code within the frame</p>
+               </>
+             )}
            </div>
          ) : (
            <div className={`p-8 rounded-3xl backdrop-blur-xl ${

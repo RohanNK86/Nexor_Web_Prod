@@ -60,7 +60,12 @@ function MobileTopNavbar({ user, userInitial, isDark, toggleTheme }: { user: any
         </Link>
       </div>
       
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3">
+        {/* Admin Link (Mobile) */}
+        <Link href="/admin" className={`font-black text-[10px] uppercase tracking-widest px-2.5 py-1.5 rounded-lg border transition-all ${isDark ? "text-amber-400 border-amber-400/30 bg-amber-400/10" : "text-amber-600 border-amber-600/30 bg-amber-600/10"}`}>
+          Admin
+        </Link>
+        
         {/* Theme Toggle (Mobile) */}
         <button 
           onClick={toggleTheme} 
