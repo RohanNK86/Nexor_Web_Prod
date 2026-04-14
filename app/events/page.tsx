@@ -13,6 +13,7 @@ interface PurchasedTicket {
   event_id: string;
   payment_id: string;
   qr_value: string;
+  quantity: number;
 }
 
 const TICKET_STORAGE_KEY = "nexor_purchased_tickets";
@@ -29,6 +30,7 @@ export default function EventsPage() {
   const [activeEventDetails, setActiveEventDetails] = useState<string | null>(null);
   const [paymentId, setPaymentId] = useState<string | null>(null);
   const [purchasedTickets, setPurchasedTickets] = useState<Record<string, PurchasedTicket>>({});
+  const [ticketQuantity, setTicketQuantity] = useState(1);
 
   const posterUrl = "https://ajfonpzetlpmenxemofe.supabase.co/storage/v1/object/sign/events/Screenshot%202026-04-11%20205913.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV85NjQ3ZWJkYy1kYmRiLTQyYTgtOGRkOS1mMjliZWM0ZTU5NzEiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJldmVudHMvU2NyZWVuc2hvdCAyMDI2LTA0LTExIDIwNTkxMy5wbmciLCJpYXQiOjE3NzU5MjE1NjMsImV4cCI6MTc3ODUxMzU2M30.VQY1pRZstT9SF1bJp0u9ZdaMsuMqKcCzUMyoK5D1jSI";
 
@@ -45,22 +47,7 @@ export default function EventsPage() {
 
     const fetchEvents = async () => {
       const data = await eventsService.getAllEvents();
-      if (data.length === 0) {
-        const defaultEvent: Event = {
-          id: "bollyvibe-01",
-          title: "Torrio BollyVibe",
-          description:
-            "BollyVibe is calling. This Saturday, April 18th, we turn up the desi energy Bollywood style. Lights, beats, glam and nonstop vibes. Dress to slay and dance like a star.",
-          price: 999,
-          date: "18th April, Sat",
-          time: "12:00 PM",
-          venue: "Toy Boy, Lulu Mall",
-          image_url: posterUrl
-        };
-        setEvents([defaultEvent]);
-      } else {
-        setEvents(data);
-      }
+      setEvents(data);
       setLoading(false);
     };
 
@@ -69,15 +56,15 @@ export default function EventsPage() {
 
   useEffect(() => {
     const loadPurchasedTickets = async () => {
-      if (!supabase || !user?.email) {
+      if (!supabase || !user?.id) {
         setPurchasedTickets({});
         return;
       }
 
       const { data, error } = await supabase
-        .from("event_tickets")
-        .select("event_id,payment_id,qr_value")
-        .eq("user_email", user.email);
+        .from("tickets")
+        .select("event_id, ticket_code, qr_signature, id")
+        .eq("user_id", user.id);
 
       if (error || !data) {
         console.error("Failed to load purchased tickets:", error);
@@ -85,7 +72,12 @@ export default function EventsPage() {
       }
 
       const ticketMap = data.reduce((acc: Record<string, PurchasedTicket>, ticket: any) => {
-        acc[ticket.event_id] = ticket;
+        acc[ticket.event_id] = {
+           event_id: ticket.event_id,
+           payment_id: ticket.id,
+           qr_value: `${ticket.ticket_code}.${ticket.qr_signature}`,
+           quantity: ticket.quantity || 1
+        };
         return acc;
       }, {});
 
@@ -97,7 +89,7 @@ export default function EventsPage() {
     };
 
     loadPurchasedTickets();
-  }, [user?.email]);
+  }, [user?.id]);
 
   const handleRegister = (eventId: string) => {
     setActiveEventDetails(activeEventDetails === eventId ? null : eventId);
@@ -112,6 +104,7 @@ export default function EventsPage() {
     }
 
     setSelectedEvent(event);
+    setTicketQuantity(1);
     setShowPurchaseSection(true);
   };
 
@@ -126,7 +119,9 @@ export default function EventsPage() {
       return;
     }
 
-    const paymentAmountInr = 2; // Temporary test amount
+    // TEST MODE: Charging 2 Rupees per ticket so you don't burn money during testing!
+    // TODO: Change '2' back to 'event.price' when you launch.
+    const paymentAmountInr = 2 * ticketQuantity;
     const razorpayKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
     if (!razorpayKey || razorpayKey === "YOUR_RAZORPAY_KEY_ID") {
       alert("Razorpay public key missing. Set NEXT_PUBLIC_RAZORPAY_KEY_ID in .env.local and restart the dev server.");
@@ -153,7 +148,7 @@ export default function EventsPage() {
       }
 
       const orderData = await orderRes.json();
-      
+
       if (orderData.error || !orderData.id) {
         alert("CRITICAL ERROR: " + (orderData.error || "Order creation failed") + "\n\nREQUIRED ACTION: Go to .env.local and check if you have entered VALID Razorpay keys.");
         return;
@@ -169,26 +164,22 @@ export default function EventsPage() {
         handler: (response: any) => {
           const confirmPayment = async () => {
             try {
-              const confirmRes = await fetch("/api/tickets/confirm", {
+              const confirmRes = await fetch("/api/booking/verify-payment", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                  eventId: event.id,
-                  eventTitle: event.title,
-                  eventDate: event.date,
-                  eventTime: event.time,
-                  eventVenue: event.venue,
-                  amountInr: paymentAmountInr,
-                  userEmail: user.email,
-                  razorpay_order_id: response.razorpay_order_id,
-                  razorpay_payment_id: response.razorpay_payment_id,
-                  razorpay_signature: response.razorpay_signature,
+                  event_id: event.id,
+                  payment_id: response.razorpay_payment_id,
+                  order_id: response.razorpay_order_id,
+                  signature: response.razorpay_signature,
+                  user_id: user?.id,
+                  quantity: ticketQuantity,
                 }),
               });
 
               const confirmData = await confirmRes.json();
-              if (!confirmRes.ok) {
-                alert(confirmData.error || "Payment captured but ticket confirmation failed.");
+              if (!confirmRes.ok || !confirmData.success) {
+                alert(confirmData.error || "Payment captured but ticket generation failed.");
                 return;
               }
 
@@ -198,7 +189,8 @@ export default function EventsPage() {
                   [event.id]: {
                     event_id: event.id,
                     payment_id: response.razorpay_payment_id,
-                    qr_value: confirmData.ticket?.qr_value || `NEXOR-EVENT-${event.id}-${response.razorpay_payment_id}`,
+                    qr_value: confirmData.qr_data,
+                    quantity: ticketQuantity,
                   },
                 };
                 window.localStorage.setItem(TICKET_STORAGE_KEY, JSON.stringify(next));
@@ -249,6 +241,47 @@ export default function EventsPage() {
     }
   };
 
+  const handleDownloadImage = async () => {
+    const element = document.getElementById("ticket-component");
+    if (!element) return;
+    try {
+        const html2canvas = (await import("html2canvas")).default;
+        const canvas = await html2canvas(element, { backgroundColor: "#ffffff", scale: 2 });
+        const dataUrl = canvas.toDataURL("image/png");
+        const link = document.createElement("a");
+        link.download = `Nexor-Ticket-${selectedEvent?.title.replace(/\s+/g, "_")}.png`;
+        link.href = dataUrl;
+        link.click();
+    } catch (e) {
+        console.error("Failed to download image", e);
+        alert("Failed to download image.");
+    }
+  };
+
+  const handleDownloadPDF = async () => {
+    const element = document.getElementById("ticket-component");
+    if (!element) return;
+    try {
+        const html2canvas = (await import("html2canvas")).default;
+        const { jsPDF } = await import("jspdf");
+        
+        const canvas = await html2canvas(element, { backgroundColor: "#ffffff", scale: 2 });
+        const imgData = canvas.toDataURL("image/png");
+        
+        const pdf = new jsPDF("p", "mm", "a4");
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        // Add some margin at the top
+        const margin = 10;
+        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+        
+        pdf.addImage(imgData, "PNG", 0, margin, pdfWidth, pdfHeight);
+        pdf.save(`Nexor-Ticket-${selectedEvent?.title.replace(/\s+/g, "_")}.pdf`);
+    } catch (e) {
+        console.error("Failed to download PDF", e);
+        alert("Failed to download PDF.");
+    }
+  };
+
   const closeTicket = () => {
     setShowSuccessTicket(false);
     setSelectedEvent(null);
@@ -257,13 +290,13 @@ export default function EventsPage() {
 
   return (
     <div className={`min-h-screen relative transition-colors duration-700 ${isDark ? 'bg-[#030308]' : 'bg-[#FAF9F6]'}`}>
-      
+
       {/* Dynamic Background */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className={`absolute -top-1/4 -right-1/4 w-[70%] h-[70%] rounded-full blur-[150px] transition-opacity duration-1000 ${isDark ? 'bg-purple-600/10 opacity-60' : 'bg-amber-200/20 opacity-40'}`} />
         <div className={`absolute -bottom-1/4 -left-1/4 w-[60%] h-[60%] rounded-full blur-[120px] transition-opacity duration-1000 ${isDark ? 'bg-amber-500/5 opacity-50' : 'bg-purple-100/30 opacity-30'}`} />
-        <div className={`absolute inset-0 opacity-[0.05] ${isDark ? 'invert-0' : 'invert'}`} 
-             style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #fff 1px, transparent 0)', backgroundSize: '40px 40px' }} />
+        <div className={`absolute inset-0 opacity-[0.05] ${isDark ? 'invert-0' : 'invert'}`}
+          style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #fff 1px, transparent 0)', backgroundSize: '40px 40px' }} />
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 lg:pt-32 pb-20 sm:pb-28 lg:pb-40">
@@ -277,13 +310,19 @@ export default function EventsPage() {
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-600 drop-shadow-[0_0_20px_rgba(251,191,36,0.2)]">Events</span>
           </h1>
         </header>
-        
+
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 sm:gap-7 lg:gap-10">
-          {events.map((event, idx) => (
+        {events.length === 0 && !loading ? (
+          <div className={`col-span-full py-20 text-center rounded-3xl border ${isDark ? 'bg-white/5 border-white/10' : 'bg-black/5 border-black/10'}`}>
+            <h3 className={`text-2xl font-black uppercase tracking-widest ${isDark ? 'text-white/50' : 'text-black/50'}`}>No Active Events</h3>
+            <p className={`mt-4 font-medium ${isDark ? 'text-white/30' : 'text-black/40'}`}>Stay tuned for upcoming massive experiences!</p>
+          </div>
+        ) : (
+          events.map((event, idx) => (
             <div key={event.id} className="group relative rounded-[2rem] sm:rounded-[2.5rem] p-2 sm:p-3 lg:p-4 transition-all duration-500 hover:-translate-y-1 sm:hover:-translate-y-2 animate-fade-up" style={{ animationDelay: `${idx * 0.1}s` }}>
               <div className={`relative h-full rounded-[1.8rem] sm:rounded-[2.2rem] overflow-hidden border transition-all duration-500 ${isDark ? 'bg-white/[0.03] border-white/10 group-hover:border-amber-400/30' : 'bg-white border-black/5 shadow-xl'}`}>
                 <div className="relative aspect-[4/5] overflow-hidden m-3 sm:m-4 rounded-[1.4rem] sm:rounded-[2rem]">
-                  <Image src={event.image_url} alt={event.title} fill className="object-cover transition-transform duration-700 group-hover:scale-110" />
+                  <img src={event.image_url || 'https://images.unsplash.com/photo-1540039155732-680ab8082627?q=80&w=1200'} alt={event.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60" />
                   <div className="absolute top-4 right-4 sm:top-6 sm:right-6 px-3 sm:px-5 py-1.5 sm:py-2 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 text-white font-black text-xs sm:text-sm">₹{event.price}</div>
                 </div>
@@ -306,7 +345,8 @@ export default function EventsPage() {
                 </div>
               </div>
             </div>
-          ))}
+          ))
+        )}
         </div>
       </div>
 
@@ -317,7 +357,7 @@ export default function EventsPage() {
             <button onClick={() => setShowPurchaseSection(false)} className="absolute top-4 right-4 sm:top-7 sm:right-7 lg:top-10 lg:right-10 w-9 h-9 sm:w-11 sm:h-11 lg:w-12 lg:h-12 rounded-full flex items-center justify-center bg-white/10 text-white hover:bg-white/20 transition-all z-20">✕</button>
             <div className="flex flex-col lg:flex-row">
               <div className="w-full lg:w-[45%] relative aspect-[4/5] lg:aspect-auto">
-                <Image src={selectedEvent.image_url} alt="Purchase Poster" fill className="object-cover" />
+                <img src={selectedEvent.image_url || 'https://images.unsplash.com/photo-1540039155732-680ab8082627?q=80&w=1200'} alt="Purchase Poster" className="w-full h-full object-cover" />
               </div>
               <div className="p-6 sm:p-9 lg:p-14 flex-1 space-y-7 sm:space-y-8 lg:space-y-10">
                 <div className="space-y-3 sm:space-y-4">
@@ -336,8 +376,18 @@ export default function EventsPage() {
                 </div>
                 <div className="pt-6 sm:pt-8 lg:pt-10 border-t border-white/10 space-y-6 sm:space-y-8">
                   <div className="flex justify-between items-end">
-                    <div className="space-y-1"><p className={`text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-white/40' : 'text-black/40'}`}>Grand Total</p><p className={`text-xl font-bold ${isDark ? 'text-white' : 'text-black'}`}>All Access Pass</p></div>
-                    <span className="text-3xl sm:text-4xl lg:text-5xl font-black text-amber-400">₹{selectedEvent.price}</span>
+                    <div className="space-y-3">
+                      <p className={`text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-white/40' : 'text-black/40'}`}>Grand Total</p>
+                      <div className={`flex items-center gap-3 ${isDark ? 'text-white' : 'text-black'}`}>
+                        <p className="text-xl font-bold">All Access Pass</p>
+                        <div className={`flex items-center gap-4 px-2 py-1 rounded-full border ${isDark ? 'bg-white/10 border-white/10' : 'bg-black/5 border-black/10'}`}>
+                          <button onClick={() => setTicketQuantity(Math.max(1, ticketQuantity - 1))} className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors">-</button>
+                          <span className="text-sm font-black w-3 text-center">{ticketQuantity}</span>
+                          <button onClick={() => setTicketQuantity(Math.min(8, ticketQuantity + 1))} className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors">+</button>
+                        </div>
+                      </div>
+                    </div>
+                    <span className="text-3xl sm:text-4xl lg:text-5xl font-black text-amber-400">₹{selectedEvent.price * ticketQuantity}</span>
                   </div>
                   <button onClick={() => handlePayment(selectedEvent)} className="w-full py-4 sm:py-5 lg:py-6 bg-amber-400 text-black font-black uppercase text-[10px] sm:text-xs tracking-[0.2em] rounded-2xl sm:rounded-[2rem] shadow-[0_20px_40px_-10px_rgba(251,191,36,0.4)] hover:scale-[1.02] transition-all">Complete Payment</button>
                 </div>
@@ -360,11 +410,11 @@ export default function EventsPage() {
             </header>
 
             {/* THE TICKET */}
-            <div className="bg-white rounded-[1.6rem] sm:rounded-[2.2rem] p-4 sm:p-6 lg:p-8 space-y-5 sm:space-y-7 lg:space-y-8 relative overflow-hidden group">
+            <div id="ticket-component" className="bg-white rounded-[1.6rem] sm:rounded-[2.2rem] p-4 sm:p-6 lg:p-8 space-y-5 sm:space-y-7 lg:space-y-8 relative overflow-hidden group">
               {/* Ticket Notches */}
               <div className="absolute -left-4 top-1/2 -translate-y-1/2 w-8 h-8 bg-[#12121e] rounded-full border-r border-white/5" />
               <div className="absolute -right-4 top-1/2 -translate-y-1/2 w-8 h-8 bg-[#12121e] rounded-full border-l border-white/5" />
-              
+
               <div className="space-y-4 sm:space-y-6">
                 <h3 className="text-xl sm:text-2xl font-black text-black uppercase italic tracking-tight leading-none">{selectedEvent.title}</h3>
                 <div className="h-px bg-black/5 w-full" />
@@ -387,19 +437,38 @@ export default function EventsPage() {
               {/* QR CODE SECTION */}
               <div className="pt-8 border-t border-black/5 flex flex-col items-center space-y-4">
                 <div className="p-4 bg-white border-2 border-black/5 rounded-3xl group-hover:scale-105 transition-transform duration-500">
-                  <QRCodeSVG 
-                    value={purchasedTickets[selectedEvent.id]?.qr_value || `NEXOR-EVENT-${selectedEvent.id}-${paymentId}`} 
+                  <QRCodeSVG
+                    value={purchasedTickets[selectedEvent.id]?.qr_value || `NEXOR-EVENT-${selectedEvent.id}-${paymentId}`}
                     size={128}
                     level="H"
                     includeMargin={false}
                   />
+                </div>
+                <div className="flex gap-2 items-center mt-2">
+                  <div className="bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest ring-1 ring-amber-400 shadow-sm">
+                    Valid for {purchasedTickets[selectedEvent.id]?.quantity || 1} Entry
+                  </div>
                 </div>
                 <p className="text-[8px] font-black uppercase tracking-[0.28em] sm:tracking-[0.4em] text-black/20">Digital Admission Pass</p>
               </div>
             </div>
 
             <footer className="pt-2 sm:pt-4 lg:pt-6 space-y-3 sm:space-y-4">
-              <button 
+              <div className="flex gap-3">
+                 <button
+                   onClick={handleDownloadImage}
+                   className="flex-1 py-3 sm:py-4 bg-white/10 text-white font-black uppercase text-[9px] sm:text-[10px] tracking-widest rounded-xl hover:bg-white/20 transition-all border border-white/10 flex items-center justify-center gap-2"
+                 >
+                   <span>🖼️</span> Save PNG
+                 </button>
+                 <button
+                   onClick={handleDownloadPDF}
+                   className="flex-1 py-3 sm:py-4 bg-white/10 text-white font-black uppercase text-[9px] sm:text-[10px] tracking-widest rounded-xl hover:bg-white/20 transition-all border border-white/10 flex items-center justify-center gap-2"
+                 >
+                   <span>📄</span> Save PDF
+                 </button>
+              </div>
+              <button
                 onClick={closeTicket}
                 className="w-full py-4 sm:py-5 bg-amber-400 text-black font-black uppercase text-[10px] sm:text-xs tracking-[0.2em] sm:tracking-widest rounded-xl sm:rounded-2xl shadow-lg hover:scale-[1.02] transition-all"
               >

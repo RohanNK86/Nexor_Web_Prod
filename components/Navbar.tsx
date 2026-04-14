@@ -227,6 +227,7 @@ export default function Navbar() {
         <div className="flex items-center gap-6">
           <Link href="/flash" className={`font-semibold text-sm transition-colors ${isDark ? "text-[#f0eeff]/60 hover:text-[#f0eeff]" : "text-gray-600 hover:text-black"}`}>Flash Deals</Link>
           <Link href="/orders" className={`font-semibold text-sm transition-colors ${isDark ? "text-[#f0eeff]/60 hover:text-[#f0eeff]" : "text-gray-600 hover:text-black"}`}>Orders</Link>
+          <Link href="/admin" className={`font-black text-xs uppercase tracking-widest px-3 py-1.5 rounded-lg border transition-all ${isDark ? "text-amber-400 border-amber-400/30 hover:bg-amber-400/10" : "text-amber-600 border-amber-600/30 hover:bg-amber-600/10"}`}>Admin</Link>
 
           {user ? (
             <div className="flex items-center gap-4">
