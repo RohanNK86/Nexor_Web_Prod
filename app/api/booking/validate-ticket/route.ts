@@ -26,34 +26,44 @@ export async function POST(req: Request) {
       return NextResponse.json({ status: "INVALID", reason: "Signature Check Failed" });
     }
 
-    const { data: ticket, error: fetchError } = await supabase
+    // ATOMIC UPDATE FOR ULTRA-FAST SCANNING (1 Round-trip Happy Path)
+    const { data: updatedTicket, error: updateError } = await supabase
       .from("tickets")
+      .update({ is_used: true, used_at: new Date().toISOString() })
+      .eq("ticket_code", ticket_code)
+      .eq("is_used", false)
       .select("*")
+      .single();
+
+    if (updatedTicket) {
+      // Async log: We don't await this so the scanner gets a nearly instant response
+      supabase.from("scan_logs").insert({
+        ticket_id: updatedTicket.id,
+        scanner_id: scanner_id || "web_scanner",
+        status: "valid"
+      }).then(res => { if(res.error) console.error("Log error", res.error); });
+
+      return NextResponse.json({ status: "VALID", quantity: updatedTicket.quantity || 1 });
+    }
+
+    // If atomic update failed, it means either: 
+    // 1. Ticket doesn't exist
+    // 2. Ticket is already used
+    const { data: existingTicket } = await supabase
+      .from("tickets")
+      .select("is_used")
       .eq("ticket_code", ticket_code)
       .single();
 
-    if (fetchError || !ticket) {
+    if (!existingTicket) {
       return NextResponse.json({ status: "INVALID", reason: "Ticket Unregistered in DB" });
     }
 
-    if (ticket.is_used) {
-      return NextResponse.json({ status: "ALREADY_USED" });
+    if (existingTicket.is_used) {
+      return NextResponse.json({ status: "ALREADY_USED", reason: "Ticket has already been scanned!" });
     }
 
-    const { error: updateError } = await supabase
-      .from("tickets")
-      .update({ is_used: true, used_at: new Date().toISOString() })
-      .eq("ticket_code", ticket_code);
-
-    if (updateError) throw updateError;
-
-    await supabase.from("scan_logs").insert({
-      ticket_id: ticket.id,
-      scanner_id: scanner_id || "web_scanner",
-      status: "valid"
-    });
-
-    return NextResponse.json({ status: "VALID", quantity: ticket.quantity || 1 });
+    return NextResponse.json({ status: "ERROR", error: "Database state exception" });
   } catch (error: any) {
     console.error("Scanner API Error:", error);
     return NextResponse.json({ status: "ERROR", error: "System Error" });

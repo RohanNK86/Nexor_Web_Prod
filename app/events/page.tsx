@@ -32,6 +32,15 @@ export default function EventsPage() {
   const [purchasedTickets, setPurchasedTickets] = useState<Record<string, PurchasedTicket>>({});
   const [ticketQuantity, setTicketQuantity] = useState(1);
 
+  // Admin Scanner Auth States
+  const [showAdminModal, setShowAdminModal] = useState(false);
+  const [adminPassword, setAdminPassword] = useState("");
+  const [adminAuthLoading, setAdminAuthLoading] = useState(false);
+  const [adminAuthError, setAdminAuthError] = useState("");
+
+  const ADMIN_EMAILS = process.env.NEXT_PUBLIC_ADMIN_EMAILS ? process.env.NEXT_PUBLIC_ADMIN_EMAILS.split(',') : ["rohannk86@gmail.com", "admin@nexor.com"];
+  const isAdmin = user?.email && (ADMIN_EMAILS.includes(user.email) || user.email.includes("admin"));
+
   const posterUrl = "https://ajfonpzetlpmenxemofe.supabase.co/storage/v1/object/sign/events/Screenshot%202026-04-11%20205913.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV85NjQ3ZWJkYy1kYmRiLTQyYTgtOGRkOS1mMjliZWM0ZTU5NzEiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJldmVudHMvU2NyZWVuc2hvdCAyMDI2LTA0LTExIDIwNTkxMy5wbmciLCJpYXQiOjE3NzU5MjE1NjMsImV4cCI6MTc3ODUxMzU2M30.VQY1pRZstT9SF1bJp0u9ZdaMsuMqKcCzUMyoK5D1jSI";
 
   useEffect(() => {
@@ -288,6 +297,31 @@ export default function EventsPage() {
     setPaymentId(null);
   };
 
+  const handleAdminAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAdminAuthLoading(true);
+    setAdminAuthError("");
+
+    try {
+      const res = await fetch("/api/admin/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: adminPassword }),
+      });
+      const data = await res.json();
+      
+      if (data.success) {
+        window.location.href = data.redirectUrl;
+      } else {
+        setAdminAuthError(data.error || "Incorrect Password");
+      }
+    } catch (err: any) {
+      setAdminAuthError(err.message || "Something went wrong.");
+    } finally {
+      setAdminAuthLoading(false);
+    }
+  };
+
   return (
     <div className={`min-h-screen relative transition-colors duration-700 ${isDark ? 'bg-[#030308]' : 'bg-[#FAF9F6]'}`}>
 
@@ -301,9 +335,18 @@ export default function EventsPage() {
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 lg:pt-32 pb-20 sm:pb-28 lg:pb-40">
         <header className="mb-10 sm:mb-14 lg:mb-20 space-y-3 sm:space-y-4">
-          <div className="flex items-center gap-3">
-            <div className="h-[2px] w-12 bg-amber-400" />
-            <span className="text-amber-400 font-black tracking-[0.3em] sm:tracking-[0.4em] uppercase text-[9px] sm:text-[10px]">Prime Experiences</span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="h-[2px] w-12 bg-amber-400" />
+              <span className="text-amber-400 font-black tracking-[0.3em] sm:tracking-[0.4em] uppercase text-[9px] sm:text-[10px]">Prime Experiences</span>
+            </div>
+            <button 
+              onClick={() => setShowAdminModal(true)}
+              className="flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/50 text-rose-400 font-bold text-[10px] sm:text-xs uppercase tracking-widest rounded-xl transition-all"
+              title="Host Access"
+            >
+              <span>🔏</span> Validate Ticket Scan
+            </button>
           </div>
           <h1 className={`text-4xl sm:text-6xl lg:text-8xl font-black uppercase tracking-tight sm:tracking-tighter leading-[0.95] ${isDark ? 'text-white' : 'text-black'}`}>
             Live<br />
@@ -476,6 +519,50 @@ export default function EventsPage() {
               </button>
               <p className="text-[10px] font-medium text-white/30">Screenshot this pass for entry at the venue</p>
             </footer>
+          </div>
+        </div>
+      )}
+      {/* Admin Password Modal */}
+      {showAdminModal && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md animate-fade-in">
+          <div className="max-w-md w-full bg-[#12121e] rounded-[2rem] p-8 relative border border-white/10 shadow-2xl space-y-6">
+            <button onClick={() => setShowAdminModal(false)} className="absolute top-4 right-4 w-10 h-10 rounded-full flex items-center justify-center bg-white/5 text-white/50 hover:bg-white/10 hover:text-white transition-all">✕</button>
+            
+            <div className="text-center space-y-2">
+              <div className="w-16 h-16 bg-rose-500/20 text-rose-400 rounded-full flex items-center justify-center mx-auto mb-4 border border-rose-500/30">
+                <span className="text-3xl">🔏</span>
+              </div>
+              <h2 className="text-2xl font-black uppercase tracking-widest text-white">Host Access</h2>
+              <p className="text-white/40 text-xs font-bold uppercase tracking-widest">Enter Admin Scanner Vault Password</p>
+            </div>
+
+            <form onSubmit={handleAdminAuth} className="space-y-4">
+              <div>
+                <input
+                  type="password"
+                  value={adminPassword}
+                  onChange={(e) => setAdminPassword(e.target.value)}
+                  className="w-full bg-black/40 border border-white/10 text-white rounded-xl px-5 py-4 focus:ring-2 focus:ring-rose-500 focus:outline-none transition-all text-center tracking-widest font-mono"
+                  placeholder="••••••••"
+                  autoFocus
+                  required
+                />
+              </div>
+
+              {adminAuthError && (
+                <div className="bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-bold text-center py-3 rounded-lg uppercase tracking-widest">
+                  {adminAuthError}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={adminAuthLoading}
+                className="w-full bg-rose-500 hover:bg-rose-400 text-black font-black uppercase tracking-[0.2em] py-4 rounded-xl shadow-[0_0_20px_rgba(225,29,72,0.3)] transition-all disabled:opacity-50"
+              >
+                {adminAuthLoading ? "Verifying..." : "Unlock Scanner"}
+              </button>
+            </form>
           </div>
         </div>
       )}
