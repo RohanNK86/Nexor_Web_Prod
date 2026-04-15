@@ -82,10 +82,10 @@ export default function EventsPage() {
 
       const ticketMap = data.reduce((acc: Record<string, PurchasedTicket>, ticket: any) => {
         acc[ticket.event_id] = {
-           event_id: ticket.event_id,
-           payment_id: ticket.id,
-           qr_value: `${ticket.ticket_code}.${ticket.qr_signature}`,
-           quantity: ticket.quantity || 1
+          event_id: ticket.event_id,
+          payment_id: ticket.id,
+          qr_value: `${ticket.ticket_code}.${ticket.qr_signature}`,
+          quantity: ticket.quantity || 1
         };
         return acc;
       }, {});
@@ -130,7 +130,7 @@ export default function EventsPage() {
 
     // TEST MODE: Charging 2 Rupees per ticket so you don't burn money during testing!
     // TODO: Change '2' back to 'event.price' when you launch.
-    const paymentAmountInr = 2 * ticketQuantity;
+    const paymentAmountInr = 399 * ticketQuantity;
     const razorpayKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
     if (!razorpayKey || razorpayKey === "YOUR_RAZORPAY_KEY_ID") {
       alert("Razorpay public key missing. Set NEXT_PUBLIC_RAZORPAY_KEY_ID in .env.local and restart the dev server.");
@@ -254,16 +254,16 @@ export default function EventsPage() {
     const element = document.getElementById("ticket-component");
     if (!element) return;
     try {
-        const html2canvas = (await import("html2canvas")).default;
-        const canvas = await html2canvas(element, { backgroundColor: "#ffffff", scale: 2 });
-        const dataUrl = canvas.toDataURL("image/png");
-        const link = document.createElement("a");
-        link.download = `Nexor-Ticket-${selectedEvent?.title.replace(/\s+/g, "_")}.png`;
-        link.href = dataUrl;
-        link.click();
+      const html2canvas = (await import("html2canvas")).default;
+      const canvas = await html2canvas(element, { backgroundColor: "#ffffff", scale: 2 });
+      const dataUrl = canvas.toDataURL("image/png");
+      const link = document.createElement("a");
+      link.download = `Nexor-Ticket-${selectedEvent?.title.replace(/\s+/g, "_")}.png`;
+      link.href = dataUrl;
+      link.click();
     } catch (e) {
-        console.error("Failed to download image", e);
-        alert("Failed to download image.");
+      console.error("Failed to download image", e);
+      alert("Failed to download image.");
     }
   };
 
@@ -271,23 +271,23 @@ export default function EventsPage() {
     const element = document.getElementById("ticket-component");
     if (!element) return;
     try {
-        const html2canvas = (await import("html2canvas")).default;
-        const { jsPDF } = await import("jspdf");
-        
-        const canvas = await html2canvas(element, { backgroundColor: "#ffffff", scale: 2 });
-        const imgData = canvas.toDataURL("image/png");
-        
-        const pdf = new jsPDF("p", "mm", "a4");
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        // Add some margin at the top
-        const margin = 10;
-        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-        
-        pdf.addImage(imgData, "PNG", 0, margin, pdfWidth, pdfHeight);
-        pdf.save(`Nexor-Ticket-${selectedEvent?.title.replace(/\s+/g, "_")}.pdf`);
+      const html2canvas = (await import("html2canvas")).default;
+      const { jsPDF } = await import("jspdf");
+
+      const canvas = await html2canvas(element, { backgroundColor: "#ffffff", scale: 2 });
+      const imgData = canvas.toDataURL("image/png");
+
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      // Add some margin at the top
+      const margin = 10;
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+      pdf.addImage(imgData, "PNG", 0, margin, pdfWidth, pdfHeight);
+      pdf.save(`Nexor-Ticket-${selectedEvent?.title.replace(/\s+/g, "_")}.pdf`);
     } catch (e) {
-        console.error("Failed to download PDF", e);
-        alert("Failed to download PDF.");
+      console.error("Failed to download PDF", e);
+      alert("Failed to download PDF.");
     }
   };
 
@@ -309,7 +309,7 @@ export default function EventsPage() {
         body: JSON.stringify({ password: adminPassword }),
       });
       const data = await res.json();
-      
+
       if (data.success) {
         window.location.href = data.redirectUrl;
       } else {
@@ -340,7 +340,7 @@ export default function EventsPage() {
               <div className="h-[2px] w-12 bg-amber-400" />
               <span className="text-amber-400 font-black tracking-[0.3em] sm:tracking-[0.4em] uppercase text-[9px] sm:text-[10px]">Prime Experiences</span>
             </div>
-            <button 
+            <button
               onClick={() => setShowAdminModal(true)}
               className="flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/50 text-rose-400 font-bold text-[10px] sm:text-xs uppercase tracking-widest rounded-xl transition-all"
               title="Host Access"
@@ -355,41 +355,41 @@ export default function EventsPage() {
         </header>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 sm:gap-7 lg:gap-10">
-        {events.length === 0 && !loading ? (
-          <div className={`col-span-full py-20 text-center rounded-3xl border ${isDark ? 'bg-white/5 border-white/10' : 'bg-black/5 border-black/10'}`}>
-            <h3 className={`text-2xl font-black uppercase tracking-widest ${isDark ? 'text-white/50' : 'text-black/50'}`}>No Active Events</h3>
-            <p className={`mt-4 font-medium ${isDark ? 'text-white/30' : 'text-black/40'}`}>Stay tuned for upcoming massive experiences!</p>
-          </div>
-        ) : (
-          events.map((event, idx) => (
-            <div key={event.id} className="group relative rounded-[2rem] sm:rounded-[2.5rem] p-2 sm:p-3 lg:p-4 transition-all duration-500 hover:-translate-y-1 sm:hover:-translate-y-2 animate-fade-up" style={{ animationDelay: `${idx * 0.1}s` }}>
-              <div className={`relative h-full rounded-[1.8rem] sm:rounded-[2.2rem] overflow-hidden border transition-all duration-500 ${isDark ? 'bg-white/[0.03] border-white/10 group-hover:border-amber-400/30' : 'bg-white border-black/5 shadow-xl'}`}>
-                <div className="relative aspect-[4/5] overflow-hidden m-3 sm:m-4 rounded-[1.4rem] sm:rounded-[2rem]">
-                  <img src={event.image_url || 'https://images.unsplash.com/photo-1540039155732-680ab8082627?q=80&w=1200'} alt={event.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60" />
-                  <div className="absolute top-4 right-4 sm:top-6 sm:right-6 px-3 sm:px-5 py-1.5 sm:py-2 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 text-white font-black text-xs sm:text-sm">₹{event.price}</div>
-                </div>
-                <div className="px-4 sm:px-6 lg:px-8 pb-5 sm:pb-7 lg:pb-8 space-y-4 sm:space-y-6">
-                  <div className="space-y-1.5 sm:space-y-2">
-                    <h3 className={`text-xl sm:text-2xl font-black uppercase italic tracking-tight leading-tight ${isDark ? 'text-white' : 'text-black'}`}>{event.title}</h3>
-                    <p className={`text-xs sm:text-sm line-clamp-3 sm:line-clamp-2 leading-relaxed min-h-[54px] sm:h-10 ${isDark ? 'text-white/50' : 'text-black/50'}`}>{event.description}</p>
+          {events.length === 0 && !loading ? (
+            <div className={`col-span-full py-20 text-center rounded-3xl border ${isDark ? 'bg-white/5 border-white/10' : 'bg-black/5 border-black/10'}`}>
+              <h3 className={`text-2xl font-black uppercase tracking-widest ${isDark ? 'text-white/50' : 'text-black/50'}`}>No Active Events</h3>
+              <p className={`mt-4 font-medium ${isDark ? 'text-white/30' : 'text-black/40'}`}>Stay tuned for upcoming massive experiences!</p>
+            </div>
+          ) : (
+            events.map((event, idx) => (
+              <div key={event.id} className="group relative rounded-[2rem] sm:rounded-[2.5rem] p-2 sm:p-3 lg:p-4 transition-all duration-500 hover:-translate-y-1 sm:hover:-translate-y-2 animate-fade-up" style={{ animationDelay: `${idx * 0.1}s` }}>
+                <div className={`relative h-full rounded-[1.8rem] sm:rounded-[2.2rem] overflow-hidden border transition-all duration-500 ${isDark ? 'bg-white/[0.03] border-white/10 group-hover:border-amber-400/30' : 'bg-white border-black/5 shadow-xl'}`}>
+                  <div className="relative aspect-[4/5] overflow-hidden m-3 sm:m-4 rounded-[1.4rem] sm:rounded-[2rem]">
+                    <img src={event.image_url || 'https://images.unsplash.com/photo-1540039155732-680ab8082627?q=80&w=1200'} alt={event.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60" />
+                    <div className="absolute top-4 right-4 sm:top-6 sm:right-6 px-3 sm:px-5 py-1.5 sm:py-2 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 text-white font-black text-xs sm:text-sm">₹{event.price}</div>
                   </div>
-                  <div className={`overflow-hidden transition-all duration-500 ${activeEventDetails === event.id ? 'max-h-48 opacity-100 mt-3 sm:mt-4' : 'max-h-0 opacity-0'}`}>
-                    <div className={`p-4 sm:p-5 rounded-2xl space-y-2 border ${isDark ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'}`}>
-                      <p className="text-xs font-bold uppercase tracking-widest text-amber-400">📍 {event.venue}</p>
-                      <p className={`text-[11px] sm:text-xs font-medium ${isDark ? 'text-white/60' : 'text-black/60'}`}>📅 {event.date} | ⏰ {event.time}</p>
-                      <p className={`text-[11px] sm:text-xs font-medium ${isDark ? 'text-white/60' : 'text-black/60'}`}>🎧 Featuring: DJ Merli, Super Bro&apos;s</p>
+                  <div className="px-4 sm:px-6 lg:px-8 pb-5 sm:pb-7 lg:pb-8 space-y-4 sm:space-y-6">
+                    <div className="space-y-1.5 sm:space-y-2">
+                      <h3 className={`text-xl sm:text-2xl font-black uppercase italic tracking-tight leading-tight ${isDark ? 'text-white' : 'text-black'}`}>{event.title}</h3>
+                      <p className={`text-xs sm:text-sm line-clamp-3 sm:line-clamp-2 leading-relaxed min-h-[54px] sm:h-10 ${isDark ? 'text-white/50' : 'text-black/50'}`}>{event.description}</p>
                     </div>
-                  </div>
-                  <div className="flex gap-2.5 sm:gap-3 pt-1 sm:pt-2">
-                    <button onClick={() => handleRegister(event.id)} className={`flex-1 py-3 sm:py-3.5 rounded-xl sm:rounded-2xl text-[10px] font-black uppercase tracking-[0.15em] sm:tracking-widest border transition-all ${isDark ? 'border-white/10 text-white hover:bg-white/5' : 'border-black/10 text-black hover:bg-black/5'}`}>{activeEventDetails === event.id ? "Hide Info" : "Details"}</button>
-                    <button onClick={() => openPurchaseSection(event)} className="flex-1 py-3 sm:py-3.5 rounded-xl sm:rounded-2xl text-[10px] font-black uppercase tracking-[0.15em] sm:tracking-widest bg-amber-400 text-black shadow-[0_10px_20px_-5px_rgba(251,191,36,0.3)] hover:bg-amber-300 transition-all">{purchasedTickets[event.id] ? "View Ticket" : "Tickets"}</button>
+                    <div className={`overflow-hidden transition-all duration-500 ${activeEventDetails === event.id ? 'max-h-48 opacity-100 mt-3 sm:mt-4' : 'max-h-0 opacity-0'}`}>
+                      <div className={`p-4 sm:p-5 rounded-2xl space-y-2 border ${isDark ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'}`}>
+                        <p className="text-xs font-bold uppercase tracking-widest text-amber-400">📍 {event.venue}</p>
+                        <p className={`text-[11px] sm:text-xs font-medium ${isDark ? 'text-white/60' : 'text-black/60'}`}>📅 {event.date} | ⏰ {event.time}</p>
+                        <p className={`text-[11px] sm:text-xs font-medium ${isDark ? 'text-white/60' : 'text-black/60'}`}>🎧 Featuring: DJ Merli, Super Bro&apos;s</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2.5 sm:gap-3 pt-1 sm:pt-2">
+                      <button onClick={() => handleRegister(event.id)} className={`flex-1 py-3 sm:py-3.5 rounded-xl sm:rounded-2xl text-[10px] font-black uppercase tracking-[0.15em] sm:tracking-widest border transition-all ${isDark ? 'border-white/10 text-white hover:bg-white/5' : 'border-black/10 text-black hover:bg-black/5'}`}>{activeEventDetails === event.id ? "Hide Info" : "Details"}</button>
+                      <button onClick={() => openPurchaseSection(event)} className="flex-1 py-3 sm:py-3.5 rounded-xl sm:rounded-2xl text-[10px] font-black uppercase tracking-[0.15em] sm:tracking-widest bg-amber-400 text-black shadow-[0_10px_20px_-5px_rgba(251,191,36,0.3)] hover:bg-amber-300 transition-all">{purchasedTickets[event.id] ? "View Ticket" : "Tickets"}</button>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))
-        )}
+            ))
+          )}
         </div>
       </div>
 
@@ -498,18 +498,18 @@ export default function EventsPage() {
 
             <footer className="pt-2 sm:pt-4 lg:pt-6 space-y-3 sm:space-y-4">
               <div className="flex gap-3">
-                 <button
-                   onClick={handleDownloadImage}
-                   className="flex-1 py-3 sm:py-4 bg-white/10 text-white font-black uppercase text-[9px] sm:text-[10px] tracking-widest rounded-xl hover:bg-white/20 transition-all border border-white/10 flex items-center justify-center gap-2"
-                 >
-                   <span>🖼️</span> Save PNG
-                 </button>
-                 <button
-                   onClick={handleDownloadPDF}
-                   className="flex-1 py-3 sm:py-4 bg-white/10 text-white font-black uppercase text-[9px] sm:text-[10px] tracking-widest rounded-xl hover:bg-white/20 transition-all border border-white/10 flex items-center justify-center gap-2"
-                 >
-                   <span>📄</span> Save PDF
-                 </button>
+                <button
+                  onClick={handleDownloadImage}
+                  className="flex-1 py-3 sm:py-4 bg-white/10 text-white font-black uppercase text-[9px] sm:text-[10px] tracking-widest rounded-xl hover:bg-white/20 transition-all border border-white/10 flex items-center justify-center gap-2"
+                >
+                  <span>🖼️</span> Save PNG
+                </button>
+                <button
+                  onClick={handleDownloadPDF}
+                  className="flex-1 py-3 sm:py-4 bg-white/10 text-white font-black uppercase text-[9px] sm:text-[10px] tracking-widest rounded-xl hover:bg-white/20 transition-all border border-white/10 flex items-center justify-center gap-2"
+                >
+                  <span>📄</span> Save PDF
+                </button>
               </div>
               <button
                 onClick={closeTicket}
@@ -527,7 +527,7 @@ export default function EventsPage() {
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md animate-fade-in">
           <div className="max-w-md w-full bg-[#12121e] rounded-[2rem] p-8 relative border border-white/10 shadow-2xl space-y-6">
             <button onClick={() => setShowAdminModal(false)} className="absolute top-4 right-4 w-10 h-10 rounded-full flex items-center justify-center bg-white/5 text-white/50 hover:bg-white/10 hover:text-white transition-all">✕</button>
-            
+
             <div className="text-center space-y-2">
               <div className="w-16 h-16 bg-rose-500/20 text-rose-400 rounded-full flex items-center justify-center mx-auto mb-4 border border-rose-500/30">
                 <span className="text-3xl">🔏</span>
