@@ -7,7 +7,10 @@ import Link from "next/link";
 export default function ScannerClient() {
   const [scanResult, setScanResult] = useState<any>(null);
   const [scanning, setScanning] = useState(true);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
+  const [showDashboard, setShowDashboard] = useState(false);
+  const [stats, setStats] = useState({ total: 0, used: 0, loading: false });
   const scannerRef = useRef<Html5Qrcode | null>(null);
 
   useEffect(() => {
@@ -53,8 +56,9 @@ export default function ScannerClient() {
 
   const onScanSuccess = async (decodedText: string) => {
     // Only scan once per ticket presentation
-    if (!scanning) return;
+    if (!scanning || isProcessing) return;
     setScanning(false);
+    setIsProcessing(true);
     
     if (scannerRef.current) {
       try {
@@ -71,8 +75,10 @@ export default function ScannerClient() {
       });
       const data = await res.json();
       setScanResult({ ...data, raw_data: decodedText });
+      setIsProcessing(false);
     } catch (error: any) {
       setScanResult({ status: "ERROR", error: error.message });
+      setIsProcessing(false);
     }
   };
 
@@ -80,8 +86,30 @@ export default function ScannerClient() {
 
   const resetScanner = () => {
     setScanResult(null);
+    setIsProcessing(false);
     setScanning(true);
   };
+
+  const fetchStats = async () => {
+    setStats(s => ({ ...s, loading: true }));
+    try {
+      const res = await fetch("/api/admin/stats");
+      const data = await res.json();
+      if (data.success) {
+         setStats({ total: data.totalTickets, used: data.usedTickets, loading: false });
+      } else {
+         setStats(s => ({ ...s, loading: false }));
+      }
+    } catch (e) {
+      setStats(s => ({ ...s, loading: false }));
+    }
+  };
+
+  useEffect(() => {
+    if (showDashboard) {
+      fetchStats();
+    }
+  }, [showDashboard]);
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col items-center pt-8 sm:pt-20 px-4">
@@ -90,7 +118,15 @@ export default function ScannerClient() {
             <h1 className="text-2xl sm:text-3xl font-black text-amber-400 tracking-[0.2em] uppercase">Fast Scanner</h1>
             <p className="text-white/40 text-xs mt-1 font-medium tracking-widest uppercase">Admin Secure Access</p>
           </div>
-          <Link href="/events" className="px-4 py-2 bg-white/10 text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-white/20 transition">Exit</Link>
+          <div className="flex gap-2">
+            <button 
+              onClick={() => setShowDashboard(true)} 
+              className="px-4 py-2 bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-amber-500/30 transition shadow-lg shrink-0"
+            >
+              Dashboard
+            </button>
+            <Link href="/events" className="px-4 py-2 bg-white/10 text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-white/20 transition border border-white/5">Exit</Link>
+          </div>
        </div>
 
        <div className="max-w-lg w-full">
@@ -119,6 +155,20 @@ export default function ScannerClient() {
                <div className="w-8 h-8 border-b-4 border-r-4 border-amber-400 rounded-br-xl mix-blend-exclusion" />
              </div>
              <p className="text-center text-xs text-amber-400/80 uppercase tracking-widest mt-4 pb-2 animate-pulse">Scanning QR Signature...</p>
+           </div>
+         ) : isProcessing ? (
+           <div className={`p-8 sm:p-12 rounded-[2rem] backdrop-blur-3xl shadow-2xl transition-all duration-300 bg-cyan-500/20 border-2 border-cyan-500 box-shadow-[0_0_100px_rgba(6,182,212,0.3)]`}>
+             <div className="text-center">
+               <div className="text-6xl sm:text-8xl mb-4 inline-block drop-shadow-2xl animate-spin">
+                 ⏳
+               </div>
+               <h2 className="font-black text-4xl sm:text-5xl uppercase tracking-widest text-cyan-400 drop-shadow-[0_0_10px_rgba(6,182,212,0.8)] animate-pulse">
+                 Processing
+               </h2>
+               <p className="text-cyan-200 mt-4 text-sm font-bold tracking-widest uppercase bg-black/40 py-2 px-4 rounded-xl inline-block border border-white/10">
+                 Verifying securely
+               </p>
+             </div>
            </div>
          ) : (
            <div className={`p-8 sm:p-12 rounded-[2rem] backdrop-blur-3xl shadow-2xl transition-all duration-300 ${
@@ -173,6 +223,52 @@ export default function ScannerClient() {
            </div>
          )}
        </div>
+       {/* Dashboard Modal */}
+       {showDashboard && (
+         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+           <div className="bg-[#12121e] border border-white/10 p-8 rounded-[2rem] w-full max-w-md shadow-2xl relative">
+             <button 
+               onClick={() => setShowDashboard(false)}
+               className="absolute top-6 right-6 text-white/50 hover:text-white transition"
+             >
+               <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
+             </button>
+             
+             <h2 className="text-2xl font-black uppercase tracking-widest text-amber-400 mb-8 border-b border-white/10 pb-4">Live Dashboard</h2>
+             
+             {stats.loading ? (
+               <div className="flex justify-center items-center py-12">
+                 <div className="w-8 h-8 border-4 border-amber-500/30 border-t-amber-400 rounded-full animate-spin"></div>
+               </div>
+             ) : (
+               <div className="grid grid-cols-2 gap-4">
+                 <div className="bg-white/5 p-6 rounded-2xl border border-white/5 text-center shadow-inner">
+                   <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mb-2">Total Tickets Sold</p>
+                   <p className="text-5xl font-black text-white drop-shadow-md">{stats.total}</p>
+                 </div>
+                 
+                 <div className="bg-emerald-500/10 p-6 rounded-2xl border border-emerald-500/20 text-center shadow-inner">
+                   <p className="text-emerald-400/60 text-[10px] font-bold uppercase tracking-widest mb-2">Checked In</p>
+                   <p className="text-5xl font-black text-emerald-400 drop-shadow-md">{stats.used}</p>
+                 </div>
+                 
+                 <div className="col-span-2 mt-2 bg-amber-500/10 p-4 rounded-xl border border-amber-500/20 flex justify-between items-center shadow-sm">
+                   <span className="text-amber-400 text-xs font-bold uppercase tracking-widest">Pending Check-ins</span>
+                   <span className="text-amber-400 text-xl font-black">{stats.total - stats.used}</span>
+                 </div>
+               </div>
+             )}
+             
+             <button
+               onClick={fetchStats}
+               className="w-full mt-8 bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold text-xs uppercase tracking-widest py-4 rounded-xl transition-all flex items-center justify-center gap-2"
+             >
+               <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+               Refresh Data
+             </button>
+           </div>
+         </div>
+       )}
     </div>
   );
 }

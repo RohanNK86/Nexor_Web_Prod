@@ -68,55 +68,28 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Today's Deals */}
+        {/* Today's Deals -> Event Banner */}
         <div className="mt-8 md:mt-12 px-4 md:px-6">
           <h2 className={`text-[22px] md:text-3xl font-bold mb-6 animate-fade-up tracking-tight ${txt("text-[#f0eeff]", "text-gray-900")}`}>Today's Deals !</h2>
-          <div className="flex md:grid md:grid-cols-2 gap-4 md:gap-8 overflow-x-auto md:overflow-visible pb-4 snap-x relative" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
-
-            {/* Main Deal Card */}
-            <div className="deal-card min-w-[320px] sm:min-w-[360px] md:min-w-0 md:min-h-[250px] flex-shrink-0 snap-center p-5 md:p-8 flex flex-col justify-end text-white shadow-xl animate-fade-up hover:shadow-2xl transition-all hover:-translate-y-1">
-              <div className="absolute top-4 md:top-8 left-5 md:left-8 w-3/4">
-                <h3 className="text-4xl md:text-5xl font-black italic uppercase tracking-tighter leading-none mb-1 opacity-90 drop-shadow-md">Munch<br />Mania</h3>
-                <p className="text-xs md:text-base font-semibold opacity-90 tracking-wide mt-2">Game on, hunger gone!</p>
-              </div>
-
-              {/* Discount Badge */}
-              <div className={`absolute top-0 right-5 md:right-8 px-3 md:px-4 py-1.5 md:py-2.5 rounded-b-lg text-center shadow-lg flex flex-col items-center ${isDark
-                ? "bg-white/10 backdrop-blur-md text-white border border-white/20"
-                : "bg-white text-emerald-800 border border-gray-100"
-                }`}>
-                <span className={`block text-[8px] md:text-[10px] font-black uppercase tracking-wider ${txt("text-cyan-300", "text-emerald-900")}`}>Up to</span>
-                <span className={`block text-[22px] md:text-[32px] font-black leading-none my-0 md:my-1 ${txt("text-white", "text-emerald-700")}`}>30%</span>
-                <span className={`block text-[8px] md:text-[10px] font-black uppercase tracking-wider ${txt("text-cyan-300", "text-emerald-900")}`}>Off</span>
-                <div className={`absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 rotate-45 border-b border-r ${isDark ? "bg-white/10 border-white/20" : "bg-white border-gray-100"}`}></div>
-              </div>
-
-              <div className="mt-32 md:mt-40">
-                <button className={`px-4 py-1.5 md:px-6 md:py-2 rounded-full text-xs md:text-sm font-bold shadow-md hover:scale-105 active:scale-95 transition-all ${isDark ? "bg-white/15 backdrop-blur-sm text-white border border-white/30 hover:bg-white/25" : "bg-white text-black"
-                  }`}>Order Now</button>
+          
+          <Link href="/events" className="block relative w-full overflow-hidden rounded-[2rem] shadow-2xl animate-fade-up hover:shadow-cyan-500/20 transition-all hover:-translate-y-1 group">
+            <div className="w-full aspect-[21/9] md:aspect-[3/1] bg-gray-900 relative">
+              <img 
+                src="https://ajfonpzetlpmenxemofe.supabase.co/storage/v1/object/sign/events/BollyWebNewBanner.JPEG?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV85NjQ3ZWJkYy1kYmRiLTQyYTgtOGRkOS1mMjliZWM0ZTU5NzEiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJldmVudHMvQm9sbHlXZWJOZXdCYW5uZXIuSlBFRyIsImlhdCI6MTc3NjI1NzE3MiwiZXhwIjoxNzc4ODQ5MTcyfQ.L0KwAXo78xDOyWgShRwNIPkogpIFaIY3dxYqP6ZHTvc" 
+                alt="BollyVibe Event" 
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors duration-300"></div>
+            </div>
+            {/* Action Button */}
+            <div className="absolute bottom-4 right-4 md:bottom-8 md:right-8">
+              <div className={`px-4 py-2 md:px-6 md:py-3 rounded-full text-xs md:text-sm font-black uppercase tracking-widest shadow-xl backdrop-blur-md transition-all group-hover:scale-105 ${
+                  isDark ? "bg-white/10 text-white border border-white/20" : "bg-white/90 text-black border border-white/50"
+              }`}>
+                Book Tickets
               </div>
             </div>
-
-            {/* Second Deal Card */}
-            <div
-              className="deal-card min-w-[320px] sm:min-w-[360px] md:min-w-0 md:min-h-[250px] flex-shrink-0 snap-center p-5 md:p-8 flex flex-col justify-end text-white shadow-xl animate-fade-up hover:shadow-2xl transition-all hover:-translate-y-1"
-              style={{ background: isDark ? "linear-gradient(135deg, rgba(6,182,212,0.5), rgba(17,4,32,0.9), rgba(236,72,153,0.4))" : "linear-gradient(135deg, #111827, #000000)" }}
-            >
-              <div className="absolute left-5 md:left-8 top-5 md:top-8">
-                <h3 className="text-5xl md:text-6xl font-black italic tracking-tighter leading-none mb-1">FAST<br />&<br />FRESH</h3>
-              </div>
-              <div className="mt-40 md:mt-48">
-                <button className={`px-4 py-1.5 md:px-6 md:py-2 rounded-full text-xs md:text-sm font-bold shadow-md hover:scale-105 transition-all ${isDark ? "bg-white/15 backdrop-blur-sm text-white border border-white/30 hover:bg-white/25" : "bg-white text-black"
-                  }`}>Shop Now</button>
-              </div>
-            </div>
-          </div>
-
-          {/* Carousel indicators (Mobile Only) */}
-          <div className="flex md:hidden justify-center gap-1.5 mt-1 mb-8">
-            <div className={`w-2 h-2 rounded-full ${isDark ? "bg-purple-400" : "bg-blue-500"}`}></div>
-            <div className={`w-2 h-2 rounded-full ${isDark ? "bg-white/20" : "bg-gray-200"}`}></div>
-          </div>
+          </Link>
         </div>
 
         {/* Tip Callout */}

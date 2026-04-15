@@ -31,29 +31,38 @@ export default function RegisterPage() {
     setError(null);
     const redirectBase = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
 
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${redirectBase}/auth/callback`,
-        data: {
-          first_name: firstName,
-          last_name: lastName,
-          full_name: `${firstName} ${lastName}`,
-        },
-      },
-    });
+    try {
+      // 1. Call secure server route to bypass email confirmation and rate limits
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, firstName, lastName }),
+      });
+      const resData = await res.json();
 
-    if (error) {
-      setError(error.message);
-      setLoading(false);
-    } else {
+      if (!res.ok || resData.error) {
+        throw new Error(resData.error || "Failed to create account");
+      }
+
+      // 2. Account successfully created & auto-confirmed! Automatically log them in locally.
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (signInError) throw signInError;
+
       setSuccess(true);
       setLoading(false);
-      // Wait 3 seconds then redirect to login
+      
+      // Auto-redirect to home immediately since they are logged in
       setTimeout(() => {
-        router.push("/login");
-      }, 3000);
+        router.push("/");
+      }, 1500);
+
+    } catch (err: any) {
+      setError(err.message || "An error occurred during registration");
+      setLoading(false);
     }
   };
 
@@ -110,9 +119,9 @@ export default function RegisterPage() {
               </div>
               <h3 className="text-xl font-black mb-2">Registration Successful!</h3>
               <p className={`text-sm font-bold tracking-tight ${txt("text-cyan-400", "text-emerald-600")}`}>
-                Please check your email to confirm your account.
+                Your account is ready and you are logged in.
               </p>
-              <p className="mt-8 text-xs font-bold animate-pulse">Redirecting to login...</p>
+              <p className="mt-8 text-xs font-bold animate-pulse">Entering store...</p>
             </div>
           ) : (
             <form onSubmit={handleRegister} className="space-y-4">
