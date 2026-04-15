@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
-// Ensure this route is dynamic to avoid caching stale data
+// Ensure this route is completely dynamic and never caches server-side or database calls
 export const dynamic = "force-dynamic";
-
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
 export async function GET() {
   try {
     const { data: tickets, error } = await supabaseAdmin
