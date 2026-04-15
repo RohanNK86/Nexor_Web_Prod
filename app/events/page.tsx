@@ -72,7 +72,7 @@ export default function EventsPage() {
 
       const { data, error } = await supabase
         .from("tickets")
-        .select("event_id, ticket_code, qr_signature, id")
+        .select("event_id, ticket_code, qr_signature, id, quantity")
         .eq("user_id", user.id);
 
       if (error || !data) {

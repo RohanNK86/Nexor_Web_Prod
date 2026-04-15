@@ -76,6 +76,9 @@ export default function ScannerClient() {
       const data = await res.json();
       setScanResult({ ...data, raw_data: decodedText });
       setIsProcessing(false);
+      
+      // Silently auto-update the dashboard stats locally
+      fetchStats();
     } catch (error: any) {
       setScanResult({ status: "ERROR", error: error.message });
       setIsProcessing(false);
@@ -93,7 +96,7 @@ export default function ScannerClient() {
   const fetchStats = async () => {
     setStats(s => ({ ...s, loading: true }));
     try {
-      const res = await fetch("/api/admin/stats");
+      const res = await fetch(`/api/admin/stats?t=${Date.now()}`, { cache: "no-store" });
       const data = await res.json();
       if (data.success) {
          setStats({ total: data.totalTickets, used: data.usedTickets, loading: false });
