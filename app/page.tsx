@@ -68,44 +68,6 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Today's Deals -> Event Banner */}
-        <div className="mt-8 md:mt-12 px-4 md:px-6">
-          <h2 className={`text-[22px] md:text-3xl font-bold mb-6 animate-fade-up tracking-tight ${txt("text-[#f0eeff]", "text-gray-900")}`}>Today's Deals !</h2>
-          
-          <Link href="/events" className="block relative w-full overflow-hidden rounded-[2rem] shadow-2xl animate-fade-up hover:shadow-cyan-500/20 transition-all hover:-translate-y-1 group">
-            <div className="w-full aspect-[21/9] md:aspect-[3/1] bg-gray-900 relative">
-              <img 
-                src="https://ajfonpzetlpmenxemofe.supabase.co/storage/v1/object/sign/events/BollyWebNewBanner.JPEG?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV85NjQ3ZWJkYy1kYmRiLTQyYTgtOGRkOS1mMjliZWM0ZTU5NzEiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJldmVudHMvQm9sbHlXZWJOZXdCYW5uZXIuSlBFRyIsImlhdCI6MTc3NjI1NzE3MiwiZXhwIjoxNzc4ODQ5MTcyfQ.L0KwAXo78xDOyWgShRwNIPkogpIFaIY3dxYqP6ZHTvc" 
-                alt="BollyVibe Event" 
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors duration-300"></div>
-            </div>
-            {/* Action Button */}
-            <div className="absolute bottom-4 right-4 md:bottom-8 md:right-8">
-              <div className={`px-4 py-2 md:px-6 md:py-3 rounded-full text-xs md:text-sm font-black uppercase tracking-widest shadow-xl backdrop-blur-md transition-all group-hover:scale-105 ${
-                  isDark ? "bg-white/10 text-white border border-white/20" : "bg-white/90 text-black border border-white/50"
-              }`}>
-                Book Tickets
-              </div>
-            </div>
-          </Link>
-        </div>
-
-        {/* Tip Callout */}
-        <div className="px-6 md:px-8 mb-10 overflow-hidden relative">
-          <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-1 h-32 z-0 ${isDark ? "bg-purple-500/30" : "bg-blue-200 opacity-50"}`}></div>
-          <div className={`absolute top-0 left-[calc(50%+8px)] -translate-x-1/2 w-1 h-32 z-0 md:left-[calc(50%+16px)] ${isDark ? "bg-cyan-500/30" : "bg-blue-200 opacity-50"}`}></div>
-          <div className={`text-center animate-fade-up relative z-10 py-2 md:py-6 ${isDark
-            ? "bg-[#06060e]/80 backdrop-blur-sm shadow-[0_0_30px_15px_rgba(6,6,14,0.8)]"
-            : "bg-[#f5f0e6] shadow-[0_0_20px_10px_rgba(245,240,230,1)]"
-            }`}>
-            <p className={`font-bold text-[15px] md:text-xl leading-snug tracking-tight ${txt("text-[#f0eeff]", "text-gray-900")}`}>
-              Use Quick Commerce section for fast deliveries of essentials
-            </p>
-          </div>
-        </div>
-
         {/* What's brewing */}
         <div className="px-4 md:px-6 pb-12 relative max-w-4xl mx-auto">
           <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-1 h-32 z-0 md:hidden ${isDark ? "bg-purple-500/30" : "bg-blue-200 opacity-50"}`}></div>
