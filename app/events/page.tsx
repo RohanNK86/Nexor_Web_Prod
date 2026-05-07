@@ -128,9 +128,8 @@ export default function EventsPage() {
       return;
     }
 
-    // TEST MODE: Charging 2 Rupees per ticket so you don't burn money during testing!
-    // TODO: Change '2' back to 'event.price' when you launch.
-    const paymentAmountInr = 399 * ticketQuantity;
+    // Payment amount set to 1 Rupee per person (Stag = 1, Couple = 2)
+    const paymentAmountInr = 1 * ticketQuantity;
     const razorpayKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
     if (!razorpayKey || razorpayKey === "YOUR_RAZORPAY_KEY_ID") {
       alert("Razorpay public key missing. Set NEXT_PUBLIC_RAZORPAY_KEY_ID in .env.local and restart the dev server.");
@@ -367,7 +366,7 @@ export default function EventsPage() {
                   <div className="relative aspect-[4/5] overflow-hidden m-3 sm:m-4 rounded-[1.4rem] sm:rounded-[2rem]">
                     <img src={event.image_url || 'https://images.unsplash.com/photo-1540039155732-680ab8082627?q=80&w=1200'} alt={event.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60" />
-                    <div className="absolute top-4 right-4 sm:top-6 sm:right-6 px-3 sm:px-5 py-1.5 sm:py-2 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 text-white font-black text-xs sm:text-sm">₹{event.price}</div>
+                    {/* Price badge removed as per request */}
                   </div>
                   <div className="px-4 sm:px-6 lg:px-8 pb-5 sm:pb-7 lg:pb-8 space-y-4 sm:space-y-6">
                     <div className="space-y-1.5 sm:space-y-2">
@@ -378,7 +377,15 @@ export default function EventsPage() {
                       <div className={`p-4 sm:p-5 rounded-2xl space-y-2 border ${isDark ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'}`}>
                         <p className="text-xs font-bold uppercase tracking-widest text-amber-400">📍 {event.venue}</p>
                         <p className={`text-[11px] sm:text-xs font-medium ${isDark ? 'text-white/60' : 'text-black/60'}`}>📅 {event.date} | ⏰ {event.time}</p>
-                        <p className={`text-[11px] sm:text-xs font-medium ${isDark ? 'text-white/60' : 'text-black/60'}`}>🎧 Featuring: DJ Merli, Super Bro&apos;s</p>
+                        <p className={`text-[11px] sm:text-xs font-medium ${isDark ? 'text-white/60' : 'text-black/60'}`}>
+                          🎧 Featuring: {
+                            event.title.toLowerCase().includes('back to 2000') 
+                              ? 'DJ Prithvi, DJ Kave, DJ Kish, DJ Sami' 
+                              : event.title.toLowerCase().includes('miss behave') 
+                                ? 'Amith x Eryth' 
+                                : 'TBA'
+                          }
+                        </p>
                       </div>
                     </div>
                     <div className="flex gap-2.5 sm:gap-3 pt-1 sm:pt-2">
@@ -418,19 +425,37 @@ export default function EventsPage() {
                   </div>
                 </div>
                 <div className="pt-6 sm:pt-8 lg:pt-10 border-t border-white/10 space-y-6 sm:space-y-8">
-                  <div className="flex justify-between items-end">
-                    <div className="space-y-3">
-                      <p className={`text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-white/40' : 'text-black/40'}`}>Grand Total</p>
-                      <div className={`flex items-center gap-3 ${isDark ? 'text-white' : 'text-black'}`}>
-                        <p className="text-xl font-bold">All Access Pass</p>
-                        <div className={`flex items-center gap-4 px-2 py-1 rounded-full border ${isDark ? 'bg-white/10 border-white/10' : 'bg-black/5 border-black/10'}`}>
-                          <button onClick={() => setTicketQuantity(Math.max(1, ticketQuantity - 1))} className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors">-</button>
-                          <span className="text-sm font-black w-3 text-center">{ticketQuantity}</span>
-                          <button onClick={() => setTicketQuantity(Math.min(8, ticketQuantity + 1))} className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors">+</button>
-                        </div>
-                      </div>
+                  <div className="space-y-4">
+                    <p className={`text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-white/40' : 'text-black/40'}`}>Select Ticket Type</p>
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        onClick={() => setTicketQuantity(1)}
+                        className={`py-4 px-4 rounded-xl border flex flex-col items-center justify-center gap-1 transition-all ${ticketQuantity === 1 ? 'border-amber-400 bg-amber-400/10 text-amber-400' : isDark ? 'border-white/10 text-white/50 hover:border-white/30' : 'border-black/10 text-black/50 hover:border-black/30'}`}
+                      >
+                        <span className="font-black uppercase tracking-widest text-xs">Stag</span>
+                        <span className="text-[10px] opacity-70">1 Person</span>
+                      </button>
+                      <button
+                        onClick={() => setTicketQuantity(2)}
+                        className={`py-4 px-4 rounded-xl border flex flex-col items-center justify-center gap-1 transition-all ${ticketQuantity === 2 ? 'border-amber-400 bg-amber-400/10 text-amber-400' : isDark ? 'border-white/10 text-white/50 hover:border-white/30' : 'border-black/10 text-black/50 hover:border-black/30'}`}
+                      >
+                        <span className="font-black uppercase tracking-widest text-xs">Couple</span>
+                        <span className="text-[10px] opacity-70">2 People (1 Ticket)</span>
+                      </button>
                     </div>
-                    <span className="text-3xl sm:text-4xl lg:text-5xl font-black text-amber-400">₹{selectedEvent.price * ticketQuantity}</span>
+                    <div className="text-[10px] text-amber-400/80 italic mt-4 text-center tracking-wider">
+                      <p className="uppercase font-bold mb-2">Rules and Conditions :</p>
+                      <ul className="list-disc list-inside text-left inline-block space-y-1">
+                        <li>Free entries from 8-9</li>
+                        <li>Mandatory covers applicable</li>
+                        <li>21+ only</li>
+                        <li>Please carry suitable id's</li>
+                      </ul>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-end border-t border-white/10 pt-4">
+                    <p className={`text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-white/40' : 'text-black/40'}`}>Grand Total</p>
+                    <span className="text-3xl sm:text-4xl lg:text-5xl font-black text-amber-400">₹{1 * ticketQuantity}</span>
                   </div>
                   <button onClick={() => handlePayment(selectedEvent)} className="w-full py-4 sm:py-5 lg:py-6 bg-amber-400 text-black font-black uppercase text-[10px] sm:text-xs tracking-[0.2em] rounded-2xl sm:rounded-[2rem] shadow-[0_20px_40px_-10px_rgba(251,191,36,0.4)] hover:scale-[1.02] transition-all">Complete Payment</button>
                 </div>
@@ -489,7 +514,7 @@ export default function EventsPage() {
                 </div>
                 <div className="flex gap-2 items-center mt-2">
                   <div className="bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest ring-1 ring-amber-400 shadow-sm">
-                    Valid for {purchasedTickets[selectedEvent.id]?.quantity || 1} Entry
+                    {purchasedTickets[selectedEvent.id]?.quantity === 2 ? "COUPLE (2 Entries)" : "STAG (1 Entry)"}
                   </div>
                 </div>
                 <p className="text-[8px] font-black uppercase tracking-[0.28em] sm:tracking-[0.4em] text-black/20">Digital Admission Pass</p>

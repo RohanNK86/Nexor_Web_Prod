@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useTheme } from "@/lib/ThemeContext";
+import { useEffect, useState } from "react";
+import { eventsService, Event } from "@/lib/events-service";
 
 const categories = [
   { id: "grocery", label: "Grocery", emoji: "🍇", image: "/icons/grocery.png", href: "/grocery" },
@@ -19,6 +21,15 @@ const categories = [
 export default function HomePage() {
   const { theme, toggleTheme } = useTheme();
   const isDark = theme === "dark";
+  const [events, setEvents] = useState<Event[]>([]);
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      const data = await eventsService.getAllEvents();
+      setEvents(data.slice(0, 2));
+    };
+    fetchEvents();
+  }, []);
 
   // Shorthand helpers
   const txt = (dark: string, light: string) => isDark ? dark : light;
@@ -68,32 +79,45 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* What's brewing */}
+        {/* What's brewing this weekend : events */}
         <div className="px-4 md:px-6 pb-12 relative max-w-4xl mx-auto">
-          <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-1 h-32 z-0 md:hidden ${isDark ? "bg-purple-500/30" : "bg-blue-200 opacity-50"}`}></div>
-          <div className={`absolute top-0 left-[calc(50%+8px)] -translate-x-1/2 w-1 h-32 z-0 md:hidden ${isDark ? "bg-cyan-500/30" : "bg-blue-200 opacity-50"}`}></div>
-          <h2 className={`text-[22px] md:text-3xl font-bold mb-6 md:mb-8 relative z-10 inline-block pr-4 ${isDark
+          <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-1 h-32 z-0 md:hidden ${isDark ? "bg-amber-500/30" : "bg-amber-200 opacity-50"}`}></div>
+          <div className={`absolute top-0 left-[calc(50%+8px)] -translate-x-1/2 w-1 h-32 z-0 md:hidden ${isDark ? "bg-amber-500/30" : "bg-amber-200 opacity-50"}`}></div>
+          <h2 className={`text-[22px] md:text-3xl font-bold mb-6 md:mb-8 relative z-10 inline-block pr-4 tracking-tight ${isDark
             ? "text-[#f0eeff] bg-[#06060e]/80 backdrop-blur-sm shadow-[0_0_12px_12px_rgba(6,6,14,0.8)]"
             : "text-gray-900 bg-[#f5f0e6] shadow-[0_0_10px_10px_rgba(245,240,230,1)]"
-            }`}>What's brewing in your head?</h2>
+            }`}>What's Brewing this Weekend</h2>
 
-          <div className={`rounded-2xl overflow-hidden relative shadow-sm transition-all ${isDark
-            ? "bg-white/5 backdrop-blur-md border border-white/10 hover:border-purple-500/40 hover:shadow-purple-900/30 hover:shadow-xl"
-            : "bg-[#fff9e6] border border-orange-100/50 hover:shadow-md"
-            }`}>
-            <div className="p-8 md:p-12 pb-32 md:pb-32">
-              <h3 className={`text-xl md:text-3xl font-bold ${txt("text-[#f0eeff]", "text-orange-900")}`}>Breakfast Specials</h3>
-              <p className={`text-sm md:text-lg mt-1 md:mt-2 ${txt("text-[#f0eeff]/60", "text-orange-800")}`}>Start your day right</p>
+          {events.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 relative z-10">
+              {events.map((event) => (
+                <Link href="/events" key={event.id}>
+                  <div className={`rounded-[2rem] overflow-hidden relative shadow-sm transition-all duration-500 hover:-translate-y-2 ${isDark
+                    ? "bg-white/5 border border-white/10 hover:border-amber-400/50 hover:shadow-amber-900/20 hover:shadow-xl"
+                    : "bg-white border border-black/5 hover:shadow-xl"
+                    }`}>
+                    <div className="aspect-[4/5] w-full relative group">
+                      <img src={event.image_url || 'https://images.unsplash.com/photo-1540039155732-680ab8082627?q=80&w=1200'} alt={event.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-80 pointer-events-none transition-opacity group-hover:opacity-60" />
+                      <div className="absolute bottom-6 left-6 right-6">
+                        <h3 className="text-white text-xl md:text-3xl font-black uppercase italic tracking-tight drop-shadow-md">{event.title}</h3>
+                        <p className="text-amber-400 text-xs font-bold uppercase tracking-widest mt-2 flex items-center gap-2">Book Tickets <span className="text-base">🎟️</span></p>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              ))}
             </div>
-            {isDark ? (
-              <>
-                <div className="absolute -bottom-10 -right-4 md:-right-10 md:-bottom-20 w-48 h-48 md:w-80 md:h-80 bg-purple-600 rounded-full mix-blend-screen blur-2xl opacity-30"></div>
-                <div className="absolute -bottom-10 -left-4 w-40 h-40 md:w-64 md:h-64 bg-cyan-500 rounded-full mix-blend-screen blur-2xl opacity-20"></div>
-              </>
-            ) : (
-              <div className="absolute -bottom-10 -right-4 md:-right-10 md:-bottom-20 w-48 h-48 md:w-80 md:h-80 bg-orange-200 rounded-full mix-blend-multiply blur-xl opacity-50"></div>
-            )}
-          </div>
+          ) : (
+            <div className={`rounded-[2rem] overflow-hidden relative shadow-sm transition-all ${isDark
+              ? "bg-white/5 backdrop-blur-md border border-white/10"
+              : "bg-[#fff9e6] border border-orange-100/50"
+              }`}>
+              <div className="p-8 md:p-12 pb-32 md:pb-32">
+                <h3 className={`text-xl md:text-3xl font-bold ${txt("text-[#f0eeff]", "text-orange-900")}`}>Loading Events...</h3>
+              </div>
+            </div>
+          )}
         </div>
 
       </div>
